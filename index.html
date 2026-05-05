@@ -738,8 +738,8 @@ let completionLvl = '';
     const node = document.createElement('div');
     node.className = 'step-node' + (i === 0 ? ' active' : '');
     node.id = 'stepNode' + i;
-    node.onclick = () => { if (i < currentStep) goStep(i); };
-    node.innerHTML = `<div class="s-dot">${s.icon}</div><div class="s-label">${s.label}</div>`;
+    node.onclick = () => { goStepFree(i); };
+    node.innerHTML = '<div class="s-dot">' + s.icon + '</div><div class="s-label">' + s.label + '</div>';
     row.appendChild(node);
     if (i < STEPS.length - 1) {
       const line = document.createElement('div');
@@ -748,11 +748,22 @@ let completionLvl = '';
       row.appendChild(line);
     }
   });
+  document.querySelector('.step-card[data-step="0"]').classList.add('active');
 })();
 
 // ── NAVIGATION ───────────────────────────────────────────
+// 點「下一步」按鈕：會做驗證
 function goStep(n) {
   if (n > currentStep && !validateStep(currentStep)) return;
+  _applyStep(n);
+}
+
+// 點上方步驟圖示：自由跳轉，不做強制驗證（讓學生自由填答）
+function goStepFree(n) {
+  _applyStep(n);
+}
+
+function _applyStep(n) {
   const cards = document.querySelectorAll('.step-card');
   cards.forEach(c => c.classList.remove('active'));
   cards[n].classList.add('active');
