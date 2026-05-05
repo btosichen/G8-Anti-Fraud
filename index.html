@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🛡 AI 反詐騙有聲繪本創作實驗室</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#3B82F6; --blue-l:#EFF6FF; --blue-d:#1D4ED8;
+  --purple:#7C3AED; --purple-l:#F5F3FF; --purple-m:#8B5CF6;
+  --yellow:#F59E0B; --yellow-l:#FFFBEB; --yellow-d:#B45309;
+  --teal:#0D9488; --teal-l:#F0FDFA;
+  --green:#10B981; --green-l:#ECFDF5;
+  --bg:#F0F4FF; --white:#fff;
+  --g1:#F9FAFB; --g3:#D1D5DB; --g5:#6B7280; --g7:#374151; --g9:#111827;
+  --radius:16px; --radius-lg:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--g9);min-height:100vh}
+
+/* ── HEADER ── */
+.header{
+  background:linear-gradient(135deg,#1D4ED8 0%,#7C3AED 55%,#F59E0B 100%);
+  color:#fff;text-align:center;padding:2.5rem 1rem 2rem;position:relative;overflow:hidden;
+}
+.header::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 14px);
+}
+.header-inner{position:relative;z-index:1}
+.header h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:900;text-shadow:0 2px 12px rgba(0,0,0,.25);letter-spacing:-.02em}
+.header p{margin-top:.5rem;font-size:.95rem;opacity:.88}
+.header-badges{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+.h-badge{background:rgba(255,255,255,.2);border-radius:99px;padding:.3rem .9rem;font-size:.8rem;font-weight:700;backdrop-filter:blur(4px)}
+
+/* ── PROGRESS ── */
+.progress-bar-wrap{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:1.2rem 1rem .8rem;position:sticky;top:0;z-index:200}
+.steps-row{display:flex;align-items:center;max-width:720px;margin:0 auto}
+.step-node{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:50px}
+.s-dot{width:32px;height:32px;border-radius:50%;background:var(--g3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#fff;transition:.3s;flex-shrink:0}
+.step-node.done .s-dot{background:var(--green)}
+.step-node.active .s-dot{background:var(--blue);box-shadow:0 0 0 4px rgba(59,130,246,.2);transform:scale(1.1)}
+.s-label{font-size:.6rem;color:var(--g5);text-align:center;line-height:1.2;max-width:52px}
+.step-node.active .s-label{color:var(--blue);font-weight:700}
+.s-line{flex:1;height:3px;background:var(--g3);margin-bottom:16px;transition:.3s}
+.s-line.done{background:var(--green)}
+.pbar-track{max-width:720px;margin:.8rem auto 0;height:5px;background:var(--g1);border-radius:99px;overflow:hidden}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple-m));border-radius:99px;transition:.5s ease}
+
+/* ── MAIN ── */
+.main{max-width:860px;margin:0 auto;padding:2rem 1rem 4rem}
+
+/* ── CARD ── */
+.step-card{display:none;background:#fff;border-radius:var(--radius-lg);box-shadow:0 4px 24px rgba(0,0,0,.07);padding:2.5rem;animation:fadeUp .4s ease}
+.step-card.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.step-head{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
+.s-icon{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0}
+.s-icon.blue{background:var(--blue-l)} .s-icon.purple{background:var(--purple-l)}
+.s-icon.yellow{background:var(--yellow-l)} .s-icon.teal{background:var(--teal-l)} .s-icon.green{background:var(--green-l)}
+.s-title{font-size:1.35rem;font-weight:900;color:var(--g9)}
+.s-sub{font-size:.88rem;color:var(--g5);margin-top:2px}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:.95rem;font-weight:700;color:var(--purple);margin:1.5rem 0 .75rem;display:flex;align-items:center;gap:.5rem}
+.n-badge{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--purple);color:#fff;font-size:.7rem;font-weight:700;align-items:center;justify-content:center}
+
+/* ── FORM ELEMENTS ── */
+.form-group{margin-bottom:1.4rem}
+.form-label{display:block;font-weight:700;font-size:.92rem;color:var(--g7);margin-bottom:.45rem}
+.form-label .req{color:#EF4444}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:.72rem 1rem;border:2px solid var(--g3);border-radius:12px;
+  font-family:'Noto Sans TC',sans-serif;font-size:.93rem;color:var(--g9);
+  transition:border-color .2s,box-shadow .2s;background:#fff;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+textarea{min-height:110px;resize:vertical;line-height:1.7}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:580px){.form-row{grid-template-columns:1fr}}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:580px){.form-row3{grid-template-columns:1fr}}
+
+/* ── CHOICE CARDS ── */
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.85rem}
+.c-card{border:2.5px solid var(--g3);border-radius:14px;padding:1.1rem .8rem;text-align:center;cursor:pointer;transition:.2s;user-select:none}
+.c-card:hover{border-color:var(--blue);background:var(--blue-l)}
+.c-card.selected{border-color:var(--blue);background:var(--blue-l);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.c-card .c-emoji{font-size:1.9rem;display:block;margin-bottom:.4rem}
+.c-card .c-name{font-weight:700;font-size:.85rem;color:var(--g7);line-height:1.3}
+.c-card.selected .c-name{color:var(--blue-d)}
+
+/* ── RADIO/CHECK OPTIONS ── */
+.radio-group,.check-group{display:flex;flex-direction:column;gap:.65rem}
+.r-opt,.ch-opt{
+  display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1.1rem;
+  border:2px solid var(--g3);border-radius:12px;cursor:pointer;transition:.2s;
+}
+.r-opt:hover{border-color:var(--blue);background:var(--blue-l)}
+.r-opt.selected{border-color:var(--blue);background:var(--blue-l)}
+.ch-opt:hover{border-color:var(--purple);background:var(--purple-l)}
+.ch-opt.checked{border-color:var(--purple);background:var(--purple-l)}
+.r-opt input,.ch-opt input{width:18px;height:18px;flex-shrink:0;margin-top:1px;accent-color:var(--blue)}
+.r-label-text{font-weight:700;font-size:.9rem}
+.r-label-desc{font-size:.8rem;color:var(--g5);margin-top:2px}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.78rem;font-weight:700}
+.badge-red{background:#FEE2E2;color:#DC2626}
+.badge-orange{background:#FEF3C7;color:#D97706}
+.badge-green{background:#D1FAE5;color:#059669}
+
+/* ── INFO BOX ── */
+.info-box{background:var(--blue-l);border-left:4px solid var(--blue);border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:.88rem;color:var(--blue-d);line-height:1.6}
+.tip-box{background:var(--yellow-l);border-left:4px solid var(--yellow);border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:.88rem;color:var(--yellow-d);line-height:1.6}
+.warn-box{background:#FEF2F2;border-left:4px solid #EF4444;border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:.88rem;color:#B91C1C;line-height:1.6}
+
+/* ── DIVIDER ── */
+hr{border:none;border-top:2px solid var(--g1);margin:1.5rem 0}
+
+/* ── NAV BUTTONS ── */
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:2.5rem;gap:1rem}
+.btn{padding:.85rem 1.8rem;border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;border:none;transition:.2s}
+.btn-prev{background:var(--g1);color:var(--g7)}
+.btn-prev:hover{background:var(--g3)}
+.btn-next{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.3)}
+.btn-next:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(59,130,246,.38)}
+.btn-submit{background:linear-gradient(135deg,var(--green),#059669);color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.3)}
+.btn-submit:hover{transform:translateY(-2px)}
+.btn-outline{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.btn-outline:hover{background:var(--blue-l)}
+.btn-yellow{background:linear-gradient(135deg,var(--yellow),#D97706);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,.3)}
+.btn-yellow:hover{transform:translateY(-2px)}
+
+/* ── SCORE SECTION ── */
+.radar-wrap{max-width:380px;margin:0 auto;padding:1rem}
+.score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.85rem;margin-bottom:1.2rem}
+@media(max-width:480px){.score-grid{grid-template-columns:1fr}}
+.sc-card{background:var(--g1);border-radius:14px;padding:1.1rem;text-align:center}
+.sc-card .sc-label{font-size:.78rem;color:var(--g5);font-weight:600}
+.sc-card .sc-val{font-size:1.8rem;font-weight:900;color:var(--blue);margin-top:3px}
+.score-total{background:linear-gradient(135deg,var(--blue),var(--purple));border-radius:20px;padding:1.5rem;text-align:center;color:#fff;margin-bottom:1.5rem}
+.score-total .t-label{font-size:.95rem;opacity:.9}
+.score-total .t-val{font-size:3rem;font-weight:900;line-height:1}
+.score-total .t-grade{font-size:1.1rem;opacity:.85;margin-top:.3rem}
+
+/* ── RESOURCE CARDS ── */
+.resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.2rem}
+@media(max-width:540px){.resource-grid{grid-template-columns:1fr}}
+.res-card{display:flex;flex-direction:column;align-items:center;padding:1.4rem;border-radius:16px;text-decoration:none;transition:.22s;text-align:center;border:2.5px solid transparent}
+.res-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.res-card.teal{background:var(--teal-l);border-color:var(--teal)}
+.res-card.blue{background:var(--blue-l);border-color:var(--blue)}
+.res-card .r-emoji{font-size:2.2rem;margin-bottom:.6rem}
+.res-card .r-title{font-weight:700;font-size:.9rem;color:var(--g9)}
+.res-card .r-desc{font-size:.78rem;color:var(--g5);margin-top:3px;line-height:1.4}
+
+/* ── EXPORT ACTIONS ── */
+.export-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1.5rem}
+
+/* ── LOADING / TOAST ── */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.loading-overlay.show{display:flex}
+.loading-box{background:#fff;border-radius:20px;padding:2rem 3rem;text-align:center;min-width:200px}
+.spinner{width:46px;height:46px;border:4px solid var(--g3);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto .75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);padding:1rem 2rem;border-radius:12px;font-weight:700;font-size:.95rem;transition:.3s;z-index:1000;color:#fff;min-width:220px;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:#059669}
+.toast.error{background:#DC2626}
+.toast.info{background:var(--blue)}
+
+/* ── CHAR COUNT ── */
+.char-hint{font-size:.78rem;color:var(--g5);text-align:right;margin-top:3px}
+
+/* ── SELF CHECK ── */
+.self-check-box{background:var(--green-l);border:2px solid #D1FAE5;border-radius:14px;padding:1.2rem;margin-top:1rem}
+.self-check-title{font-weight:700;color:#065F46;margin-bottom:.75rem;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <h1>🛡 AI 反詐騙有聲繪本創作實驗室</h1>
+    <p>運用 AI 工具設計防詐騙繪本，培養媒體素養與 AI 倫理觀念</p>
+    <div class="header-badges">
+      <span class="h-badge">🤖 AI 創作</span>
+      <span class="h-badge">📚 媒體素養</span>
+      <span class="h-badge">🔒 反詐騙宣導</span>
+      <span class="h-badge">🎨 有聲繪本</span>
+    </div>
+  </div>
+</header>
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+  <div class="steps-row" id="stepsRow">
+    <!-- generated by JS -->
+  </div>
+  <div class="pbar-track"><div class="pbar-fill" id="pbarFill" style="width:0%"></div></div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ====== STEP 0 : 基本資料 ====== -->
+<section class="step-card" data-step="0">
+  <div class="step-head">
+    <div class="s-icon blue">📋</div>
+    <div><div class="s-title">基本資料填寫</div><div class="s-sub">請先填寫你的學生資訊，才能開始創作旅程！</div></div>
+  </div>
+  <div class="info-box">👋 歡迎進入 AI 反詐騙有聲繪本創作實驗室！完成六大任務後，你的作品資料將自動記錄到老師的 Google 試算表。</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">班級 <span class="req">*</span></label>
+      <select id="s0_class">
+        <option value="">請選擇班級</option>
+        <option value="801">801</option><option value="802">802</option>
+        <option value="803">803</option><option value="804">804</option>
+        <option value="805">805</option><option value="806">806</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">組別 <span class="req">*</span></label>
+      <select id="s0_group">
+        <option value="">請選擇組別</option>
+        <option value="第1組">第1組</option><option value="第2組">第2組</option>
+        <option value="第3組">第3組</option><option value="第4組">第4組</option>
+        <option value="第5組">第5組</option><option value="第6組">第6組</option>
+        <option value="第7組">第7組</option><option value="第8組">第8組</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">座號 <span class="req">*</span></label>
+      <input type="number" id="s0_seat" min="1" max="50" placeholder="請輸入座號">
+    </div>
+    <div class="form-group">
+      <label class="form-label">姓名 <span class="req">*</span></label>
+      <input type="text" id="s0_name" placeholder="請輸入真實姓名">
+    </div>
+  </div>
+  <div class="tip-box">💡 如果是小組共同作業，請以組長資料填寫，其他組員姓名可在最後一欄補充。</div>
+  <div class="nav-btns">
+    <span></span>
+    <button class="btn btn-next" onclick="goStep(1)">開始創作 ✨</button>
+  </div>
+</section>
+
+<!-- ====== STEP 1 : 議題選擇 ====== -->
+<section class="step-card" data-step="1">
+  <div class="step-head">
+    <div class="s-icon blue">🎯</div>
+    <div><div class="s-title">模組 1｜議題理解</div><div class="s-sub">選擇你要破解的詐騙類型，並說明防詐核心觀念</div></div>
+  </div>
+
+  <div class="section-label"><span class="n-badge">1</span> 選擇詐騙類型（可複選）</div>
+  <div class="choice-grid" id="fraudTypes">
+    <div class="c-card" data-val="網路購物詐騙"><span class="c-emoji">🛒</span><span class="c-name">網路購物詐騙</span></div>
+    <div class="c-card" data-val="假投資詐騙"><span class="c-emoji">💹</span><span class="c-name">假投資群組詐騙</span></div>
+    <div class="c-card" data-val="AI深偽詐騙"><span class="c-emoji">🤖</span><span class="c-name">AI 深偽詐騙</span></div>
+    <div class="c-card" data-val="假冒客服詐騙"><span class="c-emoji">📞</span><span class="c-name">假冒客服詐騙</span></div>
+    <div class="c-card" data-val="釣魚簡訊詐騙"><span class="c-emoji">🎣</span><span class="c-name">釣魚簡訊詐騙</span></div>
+    <div class="c-card" data-val="假交友詐騙"><span class="c-emoji">💔</span><span class="c-name">假交友詐騙</span></div>
+    <div class="c-card" data-val="一頁式廣告詐騙"><span class="c-emoji">📱</span><span class="c-name">一頁式廣告詐騙</span></div>
+    <div class="c-card" data-val="其他詐騙類型"><span class="c-emoji">❓</span><span class="c-name">其他類型</span></div>
+  </div>
+
+  <div class="form-group" style="margin-top:1.2rem">
+    <label class="form-label">若選「其他」，請說明詐騙類型</label>
+    <input type="text" id="s1_fraud_other" placeholder="請描述詐騙類型...">
+  </div>
+
+  <hr>
+  <div class="section-label"><span class="n-badge">2</span> 核心防詐觀念</div>
+  <div class="form-group">
+    <label class="form-label">你的故事想傳遞什麼防詐核心觀念？ <span class="req">*</span></label>
+    <textarea id="s1_core_concept" placeholder="例如：不要輕信來路不明的投資廣告，轉帳前一定要多方查證..."></textarea>
+  </div>
+
+  <div class="section-label"><span class="n-badge">3</span> 行動建議設計</div>
+  <div class="form-group">
+    <label class="form-label">遇到詐騙時，你建議小學生可以採取哪些具體行動？ <span class="req">*</span></label>
+    <textarea id="s1_action_tips" placeholder="例如：1. 立刻告訴家長或老師  2. 撥打165反詐騙專線  3. 不要轉帳..."></textarea>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(0)">← 上一步</button>
+    <button class="btn btn-next" onclick="goStep(2)">下一步 →</button>
+  </div>
+</section>
+
+<!-- ====== STEP 2 : 故事腳本 ====== -->
+<section class="step-card" data-step="2">
+  <div class="step-head">
+    <div class="s-icon purple">✍️</div>
+    <div><div class="s-title">模組 2｜故事腳本創作</div><div class="s-sub">設計你的反詐騙故事內容（影響創意分數！）</div></div>
+  </div>
+
+  <div class="section-label"><span class="n-badge">1</span> AI 提示詞使用方式（影響評分上限）</div>
+  <div class="radio-group" id="promptLevel">
+    <label class="r-opt" onclick="selectPromptLevel(this,'copy')">
+      <input type="radio" name="promptLvl" value="copy">
+      <div>
+        <div class="r-label-text">📋 使用老師提供的提示詞（照抄）</div>
+        <div class="r-label-desc">直接使用老師給的 AI 提示詞模板，不做任何修改</div>
+        <span class="badge badge-red" style="margin-top:6px">創意分數上限 60%</span>
+      </div>
+    </label>
+    <label class="r-opt" onclick="selectPromptLevel(this,'modify')">
+      <input type="radio" name="promptLvl" value="modify">
+      <div>
+        <div class="r-label-text">✏️ 修改老師的提示詞</div>
+        <div class="r-label-desc">以老師提示詞為基礎，加入自己的角色、情節或調整風格</div>
+        <span class="badge badge-orange" style="margin-top:6px">創意分數上限 80%</span>
+      </div>
+    </label>
+    <label class="r-opt" onclick="selectPromptLevel(this,'original')">
+      <input type="radio" name="promptLvl" value="original">
+      <div>
+        <div class="r-label-text">🌟 完全自行設計提示詞</div>
+        <div class="r-label-desc">自己設計角色、衝突、查證流程，提示詞全部原創</div>
+        <span class="badge badge-green" style="margin-top:6px">創意分數上限 100%</span>
+      </div>
+    </label>
+  </div>
+
+  <hr>
+  <div class="section-label"><span class="n-badge">2</span> 故事角色設定</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">主角設定 <span class="req">*</span></label>
+      <input type="text" id="s2_hero" placeholder="例如：小美，10歲，喜歡網購的小學生...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">反派（詐騙者）設定 <span class="req">*</span></label>
+      <input type="text" id="s2_villain" placeholder="例如：偽裝成客服的詐騙集團成員...">
+    </div>
+  </div>
+
+  <div class="section-label"><span class="n-badge">3</span> 故事情節設計</div>
+  <div class="form-group">
+    <label class="form-label">🔥 衝突設計——詐騙情境如何發生？ <span class="req">*</span></label>
+    <textarea id="s2_conflict" placeholder="描述主角遇到詐騙的關鍵情境與衝突點..."></textarea>
+  </div>
+  <div class="form-group">
+    <label class="form-label">🔍 查證過程——主角如何識破詐騙？ <span class="req">*</span></label>
+    <textarea id="s2_verify" placeholder="說明主角查證詐騙的步驟與方法（例如：查165資料、問家長、比對官方資訊）..."></textarea>
+  </div>
+  <div class="form-group">
+    <label class="form-label">🎉 結局設計——故事如何收尾？ <span class="req">*</span></label>
+    <textarea id="s2_ending" placeholder="描述故事結局，以及給讀者的防詐提醒..."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">你使用 AI 生成故事的完整提示詞（請貼上）</label>
+    <textarea id="s2_prompt_used" placeholder="把你輸入給 AI 的提示詞貼在這裡..." style="min-height:80px"></textarea>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(1)">← 上一步</button>
+    <button class="btn btn-next" onclick="goStep(3)">下一步 →</button>
+  </div>
+</section>
+
+<!-- ====== STEP 3 : 分鏡角色 ====== -->
+<section class="step-card" data-step="3">
+  <div class="step-head">
+    <div class="s-icon yellow">🎬</div>
+    <div><div class="s-title">模組 3｜分鏡與角色一致性</div><div class="s-sub">確保所有圖像角色設定一致，提升故事品質</div></div>
+  </div>
+
+  <div class="info-box">📌 在 AI 生圖時，角色描述必須每次都一致，才能確保圖片中的角色長相相同。請在下方記錄固定的角色外觀描述提示詞。</div>
+
+  <div class="section-label"><span class="n-badge">1</span> 主角固定外觀描述</div>
+  <div class="form-group">
+    <label class="form-label">每次生圖都會使用的主角描述提示詞 <span class="req">*</span></label>
+    <textarea id="s3_hero_desc" placeholder="例如：a 10-year-old Taiwanese girl with short black hair, wearing a pink school uniform, big round eyes, cartoon style..." style="min-height:90px"></textarea>
+  </div>
+
+  <div class="section-label"><span class="n-badge">2</span> 反派固定外觀描述</div>
+  <div class="form-group">
+    <label class="form-label">每次生圖都會使用的反派描述提示詞 <span class="req">*</span></label>
+    <textarea id="s3_villain_desc" placeholder="例如：a suspicious adult wearing a dark hoodie, face hidden in shadow, holding a phone, cartoon villain style..." style="min-height:90px"></textarea>
+  </div>
+
+  <div class="section-label"><span class="n-badge">3</span> 圖像生成提示詞等級</div>
+  <div class="radio-group" id="imagePromptLevel">
+    <label class="r-opt" onclick="selectImgLevel(this,'copy')">
+      <input type="radio" name="imgLvl" value="copy">
+      <div><div class="r-label-text">📋 使用老師範本</div><div class="r-label-desc">完全使用老師給的圖像提示詞</div></div>
+    </label>
+    <label class="r-opt" onclick="selectImgLevel(this,'modify')">
+      <input type="radio" name="imgLvl" value="modify">
+      <div><div class="r-label-text">✏️ 在老師範本上修改</div><div class="r-label-desc">修改角色設定、背景或風格</div></div>
+    </label>
+    <label class="r-opt" onclick="selectImgLevel(this,'original')">
+      <input type="radio" name="imgLvl" value="original">
+      <div><div class="r-label-text">🌟 完全自行設計</div><div class="r-label-desc">從零設計所有圖像提示詞，角色設定完整原創</div></div>
+    </label>
+  </div>
+
+  <div class="self-check-box">
+    <div class="self-check-title">✅ 自我檢核</div>
+    <div class="check-group" id="imageChecks">
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="imgChk" value="consistent">
+        <div><div class="r-label-text">我的所有分頁圖片，角色外觀都維持一致</div></div>
+      </label>
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="imgChk" value="fixed_desc">
+        <div><div class="r-label-text">我有將角色固定描述詞套用在每一張圖片的提示詞中</div></div>
+      </label>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(2)">← 上一步</button>
+    <button class="btn btn-next" onclick="goStep(4)">下一步 →</button>
+  </div>
+</section>
+
+<!-- ====== STEP 4 : 音樂聲音 ====== -->
+<section class="step-card" data-step="4">
+  <div class="step-head">
+    <div class="s-icon teal">🎵</div>
+    <div><div class="s-title">模組 4｜音樂與聲音生成</div><div class="s-sub">為你的有聲繪本設計合適的音樂風格</div></div>
+  </div>
+
+  <div class="section-label"><span class="n-badge">1</span> 音樂設計</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">音樂風格 <span class="req">*</span></label>
+      <select id="s4_music_style">
+        <option value="">請選擇風格</option>
+        <option>輕快活潑（適合開場）</option>
+        <option>懸疑緊張（適合詐騙情境）</option>
+        <option>溫暖安心（適合查證成功）</option>
+        <option>兒歌親切（適合小學生）</option>
+        <option>電子科技感（AI主題）</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">主要情緒 <span class="req">*</span></label>
+      <select id="s4_music_mood">
+        <option value="">請選擇情緒</option>
+        <option>快樂</option><option>緊張</option><option>神秘</option>
+        <option>溫馨</option><option>警覺</option><option>勝利感</option>
+        <option>其他</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">自訂音樂風格說明（若選「其他」）</label>
+    <input type="text" id="s4_music_custom" placeholder="請描述你想要的音樂風格...">
+  </div>
+
+  <div class="section-label"><span class="n-badge">2</span> 音樂提示詞等級</div>
+  <div class="radio-group" id="musicPromptLevel">
+    <label class="r-opt" onclick="selectMusicLevel(this,'copy')">
+      <input type="radio" name="musicLvl" value="copy">
+      <div>
+        <div class="r-label-text">📋 使用老師提供的音樂提示詞</div>
+        <span class="badge badge-red" style="margin-top:5px">上限 60%</span>
+      </div>
+    </label>
+    <label class="r-opt" onclick="selectMusicLevel(this,'modify')">
+      <input type="radio" name="musicLvl" value="modify">
+      <div>
+        <div class="r-label-text">✏️ 修改老師的音樂提示詞</div>
+        <span class="badge badge-orange" style="margin-top:5px">上限 80%</span>
+      </div>
+    </label>
+    <label class="r-opt" onclick="selectMusicLevel(this,'original')">
+      <input type="radio" name="musicLvl" value="original">
+      <div>
+        <div class="r-label-text">🌟 完全自行設計音樂提示詞</div>
+        <span class="badge badge-green" style="margin-top:5px">上限 100%</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="form-group" style="margin-top:1.2rem">
+    <label class="form-label">你使用的音樂生成提示詞（請貼上）</label>
+    <textarea id="s4_music_prompt" placeholder="把輸入給音樂 AI（如 Suno、Udio）的提示詞貼在這裡..." style="min-height:80px"></textarea>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(3)">← 上一步</button>
+    <button class="btn btn-next" onclick="goStep(5)">下一步 →</button>
+  </div>
+</section>
+
+<!-- ====== STEP 5 : AI 倫理查證 ====== -->
+<section class="step-card" data-step="5">
+  <div class="step-head">
+    <div class="s-icon purple">🔍</div>
+    <div><div class="s-title">模組 5｜AI 倫理與查證</div><div class="s-sub">確保你的作品資訊正確、符合 AI 使用倫理</div></div>
+  </div>
+
+  <div class="warn-box">⚠️ 使用 AI 生成內容時，必須查證事實正確性、避免偏見與版權問題。這部分影響「AI 倫理分數」（20%）！</div>
+
+  <div class="section-label"><span class="n-badge">1</span> 查證來源（至少填寫 2 個）</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">查證來源 1 <span class="req">*</span></label>
+      <input type="text" id="s5_source1" placeholder="例如：165 反詐騙資訊網 https://165.npa.gov.tw">
+    </div>
+    <div class="form-group">
+      <label class="form-label">查證來源 2 <span class="req">*</span></label>
+      <input type="text" id="s5_source2" placeholder="例如：金管會防詐騙專區 https://moneywise.fsc.gov.tw">
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">查證來源 3（加分）</label>
+    <input type="text" id="s5_source3" placeholder="其他官方或可信來源...">
+  </div>
+
+  <div class="section-label"><span class="n-badge">2</span> 查證步驟說明</div>
+  <div class="form-group">
+    <label class="form-label">請說明你是如何查證故事中的詐騙資訊的 <span class="req">*</span></label>
+    <textarea id="s5_verify_steps" placeholder="例如：1. 先在165網站查詢是否有類似詐騙案例  2. 用金管會官網確認金融詐騙類型  3. 比對新聞報導與官方說明是否一致..."></textarea>
+  </div>
+
+  <div class="self-check-box">
+    <div class="self-check-title">🛡 AI 倫理自我檢核</div>
+    <div class="check-group" id="ethicsChecks">
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="ethicsChk" value="no_bias">
+        <div>
+          <div class="r-label-text">✅ 我的作品沒有對特定族群產生偏見或刻板印象</div>
+          <div class="r-label-desc">（例如：不因外貌、國籍、性別標記特定族群為詐騙者）</div>
+        </div>
+      </label>
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="ethicsChk" value="no_copyright">
+        <div>
+          <div class="r-label-text">✅ 我的作品沒有使用受版權保護的角色或圖像</div>
+          <div class="r-label-desc">（例如：未使用迪士尼角色、受版權保護的歌曲等）</div>
+        </div>
+      </label>
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="ethicsChk" value="no_deepfake">
+        <div>
+          <div class="r-label-text">✅ 我的作品沒有使用真實人物的深偽（Deepfake）內容</div>
+          <div class="r-label-desc">（所有 AI 生成人物均為虛構角色）</div>
+        </div>
+      </label>
+      <label class="ch-opt" onclick="toggleCheck(this)">
+        <input type="checkbox" name="ethicsChk" value="ai_transparency">
+        <div>
+          <div class="r-label-text">✅ 我有說明哪些內容是 AI 協助生成的</div>
+          <div class="r-label-desc">（對 AI 工具的使用保持透明）</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:1.5rem"><span class="n-badge">3</span> AI 工具使用說明</div>
+  <div class="form-group">
+    <label class="form-label">你使用了哪些 AI 工具？請說明各工具的用途</label>
+    <textarea id="s5_ai_tools" placeholder="例如：ChatGPT → 生成故事腳本；Midjourney → 生成繪本插圖；Suno → 生成背景音樂；ElevenLabs → 生成旁白語音..." style="min-height:80px"></textarea>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(4)">← 上一步</button>
+    <button class="btn btn-next" onclick="goStep(6)">下一步 →</button>
+  </div>
+</section>
+
+<!-- ====== STEP 6 : 完成度 + 評分 ====== -->
+<section class="step-card" data-step="6">
+  <div class="step-head">
+    <div class="s-icon green">🏆</div>
+    <div><div class="s-title">模組 6｜完成度自評與成果</div><div class="s-sub">自我評估完成程度，查看你的作品評量結果</div></div>
+  </div>
+
+  <div class="section-label"><span class="n-badge">1</span> 整體完成度自評</div>
+  <div class="radio-group" id="completionLevel">
+    <label class="r-opt" onclick="selectCompletion(this,'incomplete')">
+      <input type="radio" name="completeLvl" value="incomplete">
+      <div><div class="r-label-text">⚠️ 未完成</div><div class="r-label-desc">作品仍有重要部分未完成，例如缺少音樂、圖像或旁白</div></div>
+    </label>
+    <label class="r-opt" onclick="selectCompletion(this,'partial')">
+      <input type="radio" name="completeLvl" value="partial">
+      <div><div class="r-label-text">🔧 部分完成</div><div class="r-label-desc">主要故事已完成，部分功能（音樂/圖像/旁白）仍不完整</div></div>
+    </label>
+    <label class="r-opt" onclick="selectCompletion(this,'full')">
+      <input type="radio" name="completeLvl" value="full">
+      <div><div class="r-label-text">✅ 全部完成</div><div class="r-label-desc">故事、圖像、音樂、旁白均已完成，作品可完整播放</div></div>
+    </label>
+  </div>
+
+  <div class="form-group" style="margin-top:1.2rem">
+    <label class="form-label">其他組員姓名（若為小組作品）</label>
+    <input type="text" id="s6_members" placeholder="例如：陳大明、林小花、王小明">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">作品連結（若已上傳至 YouTube 或其他平台）</label>
+    <input type="text" id="s6_link" placeholder="https://...">
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">作品創作心得與反思</label>
+    <textarea id="s6_reflection" placeholder="分享創作過程中的學習收穫、遇到的困難，以及對 AI 工具的感想..." style="min-height:100px"></textarea>
+  </div>
+
+  <hr>
+  <div class="section-label"><span class="n-badge">2</span> 即時評量結果</div>
+
+  <div id="scoreSection" style="display:none">
+    <div class="score-total">
+      <div class="t-label">🎯 綜合評量總分</div>
+      <div class="t-val" id="totalScoreDisp">--</div>
+      <div class="t-grade" id="gradeDisp">請完成所有步驟後計算</div>
+    </div>
+    <div class="score-grid">
+      <div class="sc-card"><div class="sc-label">🤖 AI 倫理與工具運用</div><div class="sc-val" id="sc1">--</div></div>
+      <div class="sc-card"><div class="sc-label">📰 媒體素養與查證</div><div class="sc-val" id="sc2">--</div></div>
+      <div class="sc-card"><div class="sc-label">🎨 敘事創意與視覺</div><div class="sc-val" id="sc3">--</div></div>
+      <div class="sc-card"><div class="sc-label">📢 宣導價值與實用性</div><div class="sc-val" id="sc4">--</div></div>
+      <div class="sc-card" style="grid-column:span 2"><div class="sc-label">✅ 整體完成度</div><div class="sc-val" id="sc5">--</div></div>
+    </div>
+    <div class="radar-wrap">
+      <canvas id="radarChart"></canvas>
+    </div>
+  </div>
+
+  <button class="btn btn-yellow" style="width:100%;margin-top:.5rem" onclick="calcScore()">🧮 計算我的分數！</button>
+
+  <hr>
+  <div class="section-label"><span class="n-badge">3</span> 📚 官方防詐騙資源參考</div>
+  <div class="tip-box">💡 建議查證故事中的詐騙資訊是否真實可信，並至少引用一項官方來源。</div>
+  <div class="resource-grid">
+    <a href="https://165.npa.gov.tw/#/articles/C" target="_blank" class="res-card teal">
+      <div class="r-emoji">📞</div>
+      <div class="r-title">165 反詐騙資訊網</div>
+      <div class="r-desc">最新詐騙案例與預防資訊（內政部警政署）</div>
+    </a>
+    <a href="https://moneywise.fsc.gov.tw/home.jsp?id=24&parentpath=0&type=3" target="_blank" class="res-card blue">
+      <div class="r-emoji">💰</div>
+      <div class="r-title">金管會防詐騙專區</div>
+      <div class="r-desc">金融詐騙案例、防範策略與實用教學</div>
+    </a>
+  </div>
+
+  <hr>
+  <div class="section-label"><span class="n-badge">4</span> 提交與匯出</div>
+  <div class="export-row">
+    <button class="btn btn-submit" onclick="submitToSheets()">📤 提交到 Google 試算表</button>
+    <button class="btn btn-outline" onclick="exportCSV()">📊 匯出 CSV</button>
+    <button class="btn btn-outline" onclick="printPage()">🖨 列印 / PDF</button>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-prev" onclick="goStep(5)">← 上一步</button>
+    <span></span>
+  </div>
+</section>
+
+</main>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div id="loadingMsg" style="font-weight:700;color:var(--g7)">資料送出中…</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+// 請將你的 Google Apps Script Web App URL 貼在這裡
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_GAS_ID/exec';
+// ────────────────────────────────────────────────────────
+
+const STEPS = [
+  {label:'基本資料',icon:'📋'},
+  {label:'議題選擇',icon:'🎯'},
+  {label:'故事腳本',icon:'✍️'},
+  {label:'分鏡角色',icon:'🎬'},
+  {label:'音樂聲音',icon:'🎵'},
+  {label:'AI 倫理',icon:'🔍'},
+  {label:'完成評量',icon:'🏆'},
+];
+
+let currentStep = 0;
+let radarChart = null;
+let fraudSelected = [];
+let promptLvl = '';
+let imgLvl = '';
+let musicLvl = '';
+let completionLvl = '';
+
+// ── BUILD PROGRESS INDICATOR ─────────────────────────────
+(function buildSteps() {
+  const row = document.getElementById('stepsRow');
+  STEPS.forEach((s, i) => {
+    const node = document.createElement('div');
+    node.className = 'step-node' + (i === 0 ? ' active' : '');
+    node.id = 'stepNode' + i;
+    node.onclick = () => { if (i < currentStep) goStep(i); };
+    node.innerHTML = `<div class="s-dot">${s.icon}</div><div class="s-label">${s.label}</div>`;
+    row.appendChild(node);
+    if (i < STEPS.length - 1) {
+      const line = document.createElement('div');
+      line.className = 's-line';
+      line.id = 'sLine' + i;
+      row.appendChild(line);
+    }
+  });
+})();
+
+// ── NAVIGATION ───────────────────────────────────────────
+function goStep(n) {
+  if (n > currentStep && !validateStep(currentStep)) return;
+  const cards = document.querySelectorAll('.step-card');
+  cards.forEach(c => c.classList.remove('active'));
+  cards[n].classList.add('active');
+  STEPS.forEach((_, i) => {
+    const node = document.getElementById('stepNode' + i);
+    node.classList.remove('active','done');
+    if (i < n) { node.classList.add('done'); }
+    else if (i === n) { node.classList.add('active'); }
+    if (i < STEPS.length - 1) {
+      const line = document.getElementById('sLine' + i);
+      line.classList.toggle('done', i < n);
+    }
+  });
+  document.getElementById('pbarFill').style.width = (n / (STEPS.length - 1) * 100) + '%';
+  currentStep = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── VALIDATION ───────────────────────────────────────────
+function validateStep(step) {
+  const requiredMap = {
+    0: [['s0_class','班級'],['s0_group','組別'],['s0_seat','座號'],['s0_name','姓名']],
+    1: [['s1_core_concept','核心防詐觀念'],['s1_action_tips','行動建議']],
+    2: [['s2_hero','主角設定'],['s2_villain','反派設定'],['s2_conflict','衝突設計'],['s2_verify','查證過程'],['s2_ending','結局']],
+    3: [['s3_hero_desc','主角固定描述'],['s3_villain_desc','反派固定描述']],
+    4: [['s4_music_style','音樂風格'],['s4_music_mood','主要情緒']],
+    5: [['s5_source1','查證來源1'],['s5_source2','查證來源2'],['s5_verify_steps','查證步驟']],
+  };
+  const fields = requiredMap[step] || [];
+  for (const [id, name] of fields) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      showToast(`請填寫「${name}」！`, 'error');
+      el && el.focus();
+      return false;
+    }
+  }
+  if (step === 1 && fraudSelected.length === 0) {
+    showToast('請選擇至少一種詐騙類型！', 'error'); return false;
+  }
+  if (step === 2 && !promptLvl) {
+    showToast('請選擇 AI 提示詞使用方式！', 'error'); return false;
+  }
+  if (step === 3 && !imgLvl) {
+    showToast('請選擇圖像提示詞等級！', 'error'); return false;
+  }
+  if (step === 4 && !musicLvl) {
+    showToast('請選擇音樂提示詞等級！', 'error'); return false;
+  }
+  return true;
+}
+
+// ── CHOICE CARDS (multi-select) ───────────────────────────
+document.querySelectorAll('#fraudTypes .c-card').forEach(card => {
+  card.addEventListener('click', () => {
+    card.classList.toggle('selected');
+    fraudSelected = [...document.querySelectorAll('#fraudTypes .c-card.selected')].map(c => c.dataset.val);
+  });
+});
+
+// ── RADIO SELECTIONS ──────────────────────────────────────
+function selectPromptLevel(el, val) {
+  promptLvl = val;
+  document.querySelectorAll('#promptLevel .r-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectImgLevel(el, val) {
+  imgLvl = val;
+  document.querySelectorAll('#imagePromptLevel .r-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectMusicLevel(el, val) {
+  musicLvl = val;
+  document.querySelectorAll('#musicPromptLevel .r-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectCompletion(el, val) {
+  completionLvl = val;
+  document.querySelectorAll('#completionLevel .r-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── CHECKBOXES ────────────────────────────────────────────
+function toggleCheck(el) {
+  const cb = el.querySelector('input[type=checkbox]');
+  cb.checked = !cb.checked;
+  el.classList.toggle('checked', cb.checked);
+}
+
+// ── SCORE CALCULATION ─────────────────────────────────────
+function getLevelMult(lvl) {
+  return lvl === 'original' ? 1.0 : lvl === 'modify' ? 0.8 : 0.6;
+}
+function getCheckedCount(name) {
+  return document.querySelectorAll(`input[name="${name}"]:checked`).length;
+}
+
+function calcScore() {
+  if (!validateStep(5)) { showToast('請先完成所有欄位再計算！','error'); return; }
+
+  // S1: AI倫理 (20)
+  const ethicsChecked = getCheckedCount('ethicsChk'); // max 4
+  const aiToolsFilled = document.getElementById('s5_ai_tools').value.trim() ? 10 : 0;
+  const sourceCnt = [
+    document.getElementById('s5_source1').value.trim(),
+    document.getElementById('s5_source2').value.trim(),
+    document.getElementById('s5_source3').value.trim(),
+  ].filter(Boolean).length;
+  const ethicsScore = Math.min(20, Math.round((ethicsChecked / 4) * 10 + aiToolsFilled * .5 + sourceCnt * 2));
+
+  // S2: 媒體素養查證 (20)
+  const verifySteps = document.getElementById('s5_verify_steps').value.trim();
+  const mediaScore = Math.min(20, Math.round(sourceCnt * 4 + (verifySteps.length > 80 ? 8 : verifySteps.length > 30 ? 5 : 2)));
+
+  // S3: 敘事創意與視覺 (20)
+  const promptMult = getLevelMult(promptLvl);
+  const imgMult = getLevelMult(imgLvl);
+  const hasHero = document.getElementById('s3_hero_desc').value.trim().length > 20;
+  const hasVillain = document.getElementById('s3_villain_desc').value.trim().length > 20;
+  const conflictLen = document.getElementById('s2_conflict').value.trim().length;
+  const storyDepth = Math.min(1, conflictLen / 200);
+  const creativityScore = Math.min(20, Math.round(
+    (promptMult * 10 + imgMult * 6 + (hasHero ? 2 : 0) + (hasVillain ? 2 : 0)) * (0.7 + storyDepth * 0.3)
+  ));
+
+  // S4: 宣導價值 (20)
+  const conceptLen = document.getElementById('s1_core_concept').value.trim().length;
+  const actionLen = document.getElementById('s1_action_tips').value.trim().length;
+  const endingLen = document.getElementById('s2_ending').value.trim().length;
+  const promoScore = Math.min(20, Math.round(
+    (Math.min(1, conceptLen / 80) * 7) +
+    (Math.min(1, actionLen / 80) * 7) +
+    (Math.min(1, endingLen / 60) * 6)
+  ));
+
+  // S5: 整體完成度 (20)
+  const compMap = { full: 20, partial: 13, incomplete: 5, '': 0 };
+  const complScore = compMap[completionLvl] || 0;
+
+  const total = ethicsScore + mediaScore + creativityScore + promoScore + complScore;
+  const grade = total >= 90 ? '🏆 傑出' : total >= 80 ? '⭐ 優秀' : total >= 70 ? '👍 良好' : total >= 60 ? '✅ 及格' : '📝 需加油';
+
+  document.getElementById('sc1').textContent = ethicsScore;
+  document.getElementById('sc2').textContent = mediaScore;
+  document.getElementById('sc3').textContent = creativityScore;
+  document.getElementById('sc4').textContent = promoScore;
+  document.getElementById('sc5').textContent = complScore;
+  document.getElementById('totalScoreDisp').textContent = total;
+  document.getElementById('gradeDisp').textContent = grade;
+  document.getElementById('scoreSection').style.display = 'block';
+
+  // Radar Chart
+  if (radarChart) radarChart.destroy();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['AI倫理\n工具運用', '媒體素養\n查證', '敘事創意\n視覺', '宣導價值\n實用性', '整體\n完成度'],
+      datasets: [{
+        label: '我的分數',
+        data: [ethicsScore, mediaScore, creativityScore, promoScore, complScore],
+        backgroundColor: 'rgba(124,58,237,.15)',
+        borderColor: '#7C3AED',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#7C3AED',
+        pointRadius: 5,
+      }]
+    },
+    options: {
+      scales: { r: { min: 0, max: 20, ticks: { stepSize: 5, font: { family: 'Noto Sans TC', size: 10 } } } },
+      plugins: { legend: { display: false } },
+    }
+  });
+
+  window._scores = { ethicsScore, mediaScore, creativityScore, promoScore, complScore, total };
+  showToast('分數計算完成！', 'success');
+  document.getElementById('scoreSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── COLLECT DATA ──────────────────────────────────────────
+function collectData() {
+  const s = window._scores || {};
+  return {
+    時間戳記: new Date().toLocaleString('zh-TW'),
+    班級: document.getElementById('s0_class').value,
+    組別: document.getElementById('s0_group').value,
+    座號: document.getElementById('s0_seat').value,
+    姓名: document.getElementById('s0_name').value,
+    其他組員: document.getElementById('s6_members').value,
+    詐騙類型: fraudSelected.join('、') || document.getElementById('s1_fraud_other').value,
+    核心防詐觀念: document.getElementById('s1_core_concept').value,
+    行動建議: document.getElementById('s1_action_tips').value,
+    腳本提示詞等級: promptLvl,
+    主角設定: document.getElementById('s2_hero').value,
+    反派設定: document.getElementById('s2_villain').value,
+    衝突設計: document.getElementById('s2_conflict').value,
+    查證過程: document.getElementById('s2_verify').value,
+    故事結局: document.getElementById('s2_ending').value,
+    腳本提示詞內容: document.getElementById('s2_prompt_used').value,
+    主角固定描述: document.getElementById('s3_hero_desc').value,
+    反派固定描述: document.getElementById('s3_villain_desc').value,
+    圖像提示詞等級: imgLvl,
+    角色一致性: getCheckedCount('imgChk') + '/2',
+    音樂風格: document.getElementById('s4_music_style').value,
+    音樂情緒: document.getElementById('s4_music_mood').value,
+    音樂提示詞等級: musicLvl,
+    音樂提示詞內容: document.getElementById('s4_music_prompt').value,
+    查證來源1: document.getElementById('s5_source1').value,
+    查證來源2: document.getElementById('s5_source2').value,
+    查證來源3: document.getElementById('s5_source3').value,
+    查證步驟說明: document.getElementById('s5_verify_steps').value,
+    倫理自評項目: getCheckedCount('ethicsChk') + '/4',
+    使用AI工具說明: document.getElementById('s5_ai_tools').value,
+    完成度自評: completionLvl,
+    作品連結: document.getElementById('s6_link').value,
+    創作心得: document.getElementById('s6_reflection').value,
+    分數_AI倫理: s.ethicsScore || '',
+    分數_媒體素養: s.mediaScore || '',
+    分數_敘事創意: s.creativityScore || '',
+    分數_宣導價值: s.promoScore || '',
+    分數_整體完成度: s.complScore || '',
+    總分: s.total || '',
+  };
+}
+
+// ── SUBMIT TO GOOGLE SHEETS ───────────────────────────────
+async function submitToSheets() {
+  if (!validateStep(5)) { showToast('請先填寫完所有欄位！','error'); return; }
+  if (!window._scores) { showToast('請先點擊「計算分數」！','error'); return; }
+  if (GAS_URL.includes('YOUR_GAS_ID')) {
+    showToast('⚠️ 尚未設定 Google Sheets 連結，請洽老師！','error'); return;
+  }
+
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+
+  const data = collectData();
+  try {
+    const resp = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    overlay.classList.remove('show');
+    showToast('✅ 成功提交！老師已收到你的作品資料。','success');
+  } catch (e) {
+    overlay.classList.remove('show');
+    showToast('❌ 提交失敗，請檢查網路或聯絡老師。','error');
+  }
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────
+function exportCSV() {
+  if (!window._scores) { showToast('請先計算分數再匯出！','error'); return; }
+  const data = collectData();
+  const keys = Object.keys(data);
+  const vals = Object.values(data).map(v => `"${String(v).replace(/"/g,'""')}"`);
+  const bom = '\uFEFF';
+  const csv = bom + keys.join(',') + '\n' + vals.join(',');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const name = document.getElementById('s0_name').value || '學生';
+  const cls = document.getElementById('s0_class').value || 'XX';
+  a.download = `${cls}_${name}_反詐騙繪本.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV 匯出成功！','success');
+}
+
+// ── PRINT ─────────────────────────────────────────────────
+function printPage() { window.print(); }
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+
+// ── PRINT STYLES ──────────────────────────────────────────
+const printStyle = document.createElement('style');
+printStyle.textContent = `
+  @media print {
+    .progress-bar-wrap, .nav-btns, .export-row, .btn, .loading-overlay, .toast { display: none !important; }
+    .step-card { display: block !important; page-break-after: always; box-shadow: none; border: 1px solid #ccc; }
+    body { background: white; }
+  }
+`;
+document.head.appendChild(printStyle);
+</script>
+</body>
+</html>
