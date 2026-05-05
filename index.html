@@ -201,8 +201,8 @@
 
       // --- 表單狀態 ---
       const [info, setInfo] = useState({ class: '801', group: '', seat: '', name: '', members: '' });
-      const [step1, setStep1] = useState({ type: '', otherType: '', coreIdea: '', action: '', protagonist: '', villain: '', conflict: '', verify: '', ending: '', promptLevel: '', promptContent: '' });
-      const [step2, setStep2] = useState({ proDesc: '', vilDesc: '', promptLevel: '', promptContent: '', consistencyChecks: [] });
+      const [step1, setStep1] = useState({ type: '', coreIdea: '', action: '', protagonist: '', villain: '', conflict: '', verify: '', ending: '', promptLevel: '', promptContent: '' });
+      const [step2, setStep2] = useState({ proDesc: '', vilDesc: '', colorStyle: '', artStyle: '', sceneStyle: '', promptLevel: '', promptContent: '', consistencyChecks: [] });
       const [step3, setStep3] = useState({ style: '', emotion: '', promptLevel: '', promptContent: '', musicFileName: '', musicUrl: '' });
       const [step4, setStep4] = useState({ source1: '', source2: '', verifySteps: '', tools: '', ethicsChecks: [] });
       const [step5, setStep5] = useState({ completion: '', url: '', reflection: '' });
@@ -216,11 +216,11 @@
       ];
 
       // --- 摘要產生器 ---
-      const summary1 = `【AI反詐騙繪本：故事生成設定】\n詐騙類型：${step1.type === '其他類型' ? step1.otherType : step1.type}\n核心觀念：${step1.coreIdea}\n防詐行動：${step1.action}\n主角設定：${step1.protagonist}\n反派設定：${step1.villain}\n衝突事件：${step1.conflict}\n查證過程：${step1.verify}\n故事結局：${step1.ending}\n\n👉 請根據以上設定，幫我寫一個字數適合繪本、分頁敘述的反詐騙故事。`;
+      const summary1 = `【AI反詐騙繪本：故事生成設定】\n詐騙類型：${step1.type}\n核心觀念：${step1.coreIdea}\n防詐行動：${step1.action}\n主角設定：${step1.protagonist}\n反派設定：${step1.villain}\n衝突事件：${step1.conflict}\n查證過程：${step1.verify}\n故事結局：${step1.ending}\n\n👉 請根據以上設定，幫我寫一個字數適合繪本、分頁敘述的反詐騙故事。`;
       
-      const summary2 = `【AI反詐騙繪本：角色一致性設定】\n主角外觀提示詞：${step2.proDesc}\n反派外觀提示詞：${step2.vilDesc}\n\n👉 請幫我產生繪本分鏡圖。請確保每張圖片中的角色都符合上述外觀特徵。`;
+      const summary2 = `【AI反詐騙繪本：角色與視覺風格設定】\n主角外觀提示詞：${step2.proDesc}\n反派外觀提示詞：${step2.vilDesc}\n色彩風格：${step2.colorStyle}\n繪圖風格：${step2.artStyle}\n繪本場景與呈現風格：${step2.sceneStyle}\n\n👉 請幫我產生繪本分鏡圖。請確保每張圖片中的角色都符合上述外觀特徵，並且整體的色彩、繪圖與場景風格都要保持一致。`;
 
-      const summary3 = `【AI反詐騙繪本：配樂生成設定】\n故事大綱與情境：本故事是關於「${step1.type === '其他類型' ? step1.otherType : step1.type}」，主角遭遇「${step1.conflict}」，最後「${step1.ending}」。\n\n期望的音樂風格：${step3.style}\n期望的音樂情緒：${step3.emotion}\n\n👉 請幫我以此情境生成適合的背景音樂提示詞 (Prompt)。`;
+      const summary3 = `【AI反詐騙繪本：配樂生成設定】\n故事大綱與情境：本故事是關於「${step1.type}」，主角遭遇「${step1.conflict}」，最後「${step1.ending}」。\n\n期望的音樂風格：${step3.style}\n期望的音樂情緒：${step3.emotion}\n\n👉 請幫我以此情境生成適合的背景音樂提示詞 (Prompt)。`;
 
       const summary4 = `【AI反詐騙繪本：查證與工具歷程】\n我使用了以下資料來源進行查證：\n1. ${step4.source1}\n2. ${step4.source2}\n\n查證步驟：\n${step4.verifySteps}\n\n使用的 AI 工具：\n${step4.tools}\n\n👉 以上為本作品的查證與倫理自律紀錄。`;
 
@@ -263,10 +263,11 @@
         const payload = {
           時間戳記: new Date().toLocaleString('zh-TW'),
           班級: info.class, 組別: info.group, 座號: info.seat, 姓名: info.name, 其他組員: info.members,
-          詐騙類型: step1.type === '其他類型' ? step1.otherType : step1.type, 核心防詐觀念: step1.coreIdea, 行動建議: step1.action,
+          詐騙類型: step1.type, 核心防詐觀念: step1.coreIdea, 行動建議: step1.action,
           主角設定: step1.protagonist, 反派設定: step1.villain, 衝突設計: step1.conflict, 查證過程: step1.verify, 故事結局: step1.ending, 
           腳本提示詞等級: step1.promptLevel, 腳本提示詞內容: step1.promptContent,
           主角固定描述: step2.proDesc, 反派固定描述: step2.vilDesc, 
+          色彩風格: step2.colorStyle, 繪圖風格: step2.artStyle, 場景呈現風格: step2.sceneStyle,
           圖像提示詞等級: step2.promptLevel, 圖像提示詞內容: step2.promptContent, 角色一致性: step2.consistencyChecks.join(', '),
           音樂風格: step3.style, 音樂情緒: step3.emotion, 
           音樂提示詞等級: step3.promptLevel, 音樂提示詞內容: step3.promptContent,
@@ -409,31 +410,54 @@
               <Card>
                 <div className="bg-pink-50 border-l-4 border-pink-500 p-4 mb-8 rounded-r-xl">
                   <h3 className="font-bold text-pink-800 text-lg">🎨 模組2：視覺影像與角色一致性</h3>
-                  <p className="text-pink-600 mt-1">繪本的畫面需要連貫，你如何讓 AI 每次畫的主角都長一樣？</p>
+                  <p className="text-pink-600 mt-1">繪本的畫面需要連貫，你如何讓 AI 每次畫的主角都長一樣？風格也需保持統一喔！</p>
                 </div>
 
                 <div className="space-y-6 mb-8">
-                  <div>
-                    <Label>主角固定外觀描述 (強烈建議用英文)</Label>
-                    <Input placeholder="例：a 10-year-old boy, short black hair, wearing a yellow T-shirt..." value={step2.proDesc} onChange={e => setStep2({...step2, proDesc: e.target.value})} />
+                  <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-200">
+                    <h4 className="font-bold text-slate-800 mb-4">👤 角色外觀設定 (強烈建議用英文)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label>主角固定外觀描述</Label>
+                        <Input placeholder="例：a 10-year-old boy, short black hair, wearing a yellow T-shirt..." value={step2.proDesc} onChange={e => setStep2({...step2, proDesc: e.target.value})} />
+                      </div>
+                      <div>
+                        <Label>反派固定外觀描述</Label>
+                        <Input placeholder="例：a mysterious figure in a dark cloak..." value={step2.vilDesc} onChange={e => setStep2({...step2, vilDesc: e.target.value})} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>反派固定外觀描述 (強烈建議用英文)</Label>
-                    <Input placeholder="例：a mysterious figure in a dark cloak..." value={step2.vilDesc} onChange={e => setStep2({...step2, vilDesc: e.target.value})} />
+
+                  <div className="p-6 bg-slate-50 rounded-2xl border-2 border-slate-200">
+                    <h4 className="font-bold text-slate-800 mb-4">🖼️ 視覺與場景風格設定</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <Label>色彩風格</Label>
+                        <Input placeholder="例：溫暖、暗黑、高對比、粉彩..." value={step2.colorStyle} onChange={e => setStep2({...step2, colorStyle: e.target.value})} />
+                      </div>
+                      <div>
+                        <Label>繪圖風格</Label>
+                        <Input placeholder="例：水彩、3D動畫、日系動漫、剪紙..." value={step2.artStyle} onChange={e => setStep2({...step2, artStyle: e.target.value})} />
+                      </div>
+                      <div>
+                        <Label>繪本場景與呈現風格</Label>
+                        <Input placeholder="例：現代城市、魔法森林、童話書插畫..." value={step2.sceneStyle} onChange={e => setStep2({...step2, sceneStyle: e.target.value})} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {!phaseDone[1] ? (
                   <div className="text-center mt-8">
                     <Button onClick={() => markPhaseDone(1)} variant="success" className="mx-auto text-xl py-4 px-10 animate-pulse">
-                      ✨ 產生角色提示詞小整合 (完成第二階段)
+                      ✨ 產生視覺與角色提示詞小整合 (完成第二階段)
                     </Button>
                   </div>
                 ) : (
                   <div className="fade-in space-y-8 mt-8 border-t-4 border-dashed border-pink-200 pt-8">
                     <div className="bg-pink-50 border-l-4 border-pink-500 p-6 rounded-r-2xl shadow-inner">
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-pink-800 text-xl">💡 你的角色設定小整合</h3>
+                        <h3 className="font-bold text-pink-800 text-xl">💡 你的視覺設定小整合</h3>
                         <Button onClick={() => copyToClipboard(summary2)} variant="primary" className="text-sm py-2 px-4">📋 一鍵複製</Button>
                       </div>
                       <pre className="whitespace-pre-wrap text-pink-900 font-sans text-lg bg-white p-4 rounded-xl border border-pink-200">{summary2}</pre>
@@ -450,10 +474,10 @@
                       <TextArea placeholder="貼上生圖提示詞..." value={step2.promptContent} onChange={e => setStep2({...step2, promptContent: e.target.value})} />
                       
                       <div className="mt-6 border-t-2 border-slate-200 pt-6">
-                        <Label>✅ 角色一致性自我檢核</Label>
+                        <Label>✅ 視覺與角色一致性自我檢核</Label>
                         <div className="space-y-3 mt-3">
-                          <Checkbox label="我的每頁提示詞都有加上「固定角色描述」" checked={step2.consistencyChecks.includes('desc')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'desc', e.target.checked)} />
-                          <Checkbox label="產出的繪本圖片中，主角看起來是同一個人" checked={step2.consistencyChecks.includes('visual')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'visual', e.target.checked)} />
+                          <Checkbox label="我的每頁提示詞都有加上「固定角色描述」與「風格設定」" checked={step2.consistencyChecks.includes('desc')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'desc', e.target.checked)} />
+                          <Checkbox label="產出的繪本圖片中，主角長相與整體畫風看起來是一致的" checked={step2.consistencyChecks.includes('visual')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'visual', e.target.checked)} />
                         </div>
                       </div>
                     </div>
