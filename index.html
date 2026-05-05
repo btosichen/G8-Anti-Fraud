@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 反詐騙有聲繪本創作實驗室</title>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #f0f9ff;
+      color: #334155;
+    }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .print-card { 
+        box-shadow: none !important; 
+        border: 1px solid #e2e8f0 !important; 
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+      }
+      .print-break { page-break-before: always; }
+      #app-container { max-width: 100% !important; padding: 0 !important; }
+    }
+
+    .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, useRef } = React;
+
+    // ==========================================
+    // ⚙️ 設定區：請將您的 GAS URL 填入下方
+    // ==========================================
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwzK67qk1564OA6qgiZYmpVte6g6EBp0v0cX1bpuN21OqT7iRUDrowwEGDaMuKZ6aQ8Kg/exec"; 
+
+    // ==========================================
+    // 🎨 UI 元件庫
+    // ==========================================
+    const Card = ({ children, className = "" }) => (
+      <div className={`bg-white rounded-3xl shadow-xl border-2 border-blue-100 p-8 w-full max-w-4xl mx-auto ${className} print-card fade-in`}>
+        {children}
+      </div>
+    );
+
+    const Label = ({ children }) => <label className="block text-lg font-bold text-slate-700 mb-2">{children}</label>;
+
+    const Input = ({ ...props }) => (
+      <input className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-lg" {...props} />
+    );
+
+    const TextArea = ({ ...props }) => (
+      <textarea className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none text-lg resize-y min-h-[120px]" {...props}></textarea>
+    );
+
+    const RadioButton = ({ name, value, checked, onChange, label, subLabel, icon }) => (
+      <label className={`flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all ${checked ? 'border-blue-500 bg-blue-50 shadow-md transform -translate-y-1' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'}`}>
+        <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="mt-1 w-5 h-5 text-blue-600 focus:ring-blue-500" />
+        <div className="ml-3 flex-1">
+          <div className="font-bold text-lg text-slate-800 flex items-center gap-2">
+            {icon && <span>{icon}</span>}
+            {label}
+          </div>
+          {subLabel && <div className="text-sm text-slate-500 mt-1">{subLabel}</div>}
+        </div>
+      </label>
+    );
+
+    const Checkbox = ({ checked, onChange, label }) => (
+      <label className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${checked ? 'border-teal-500 bg-teal-50' : 'border-slate-200 hover:bg-slate-50'}`}>
+        <input type="checkbox" checked={checked} onChange={onChange} className="w-6 h-6 text-teal-600 rounded focus:ring-teal-500" />
+        <span className="ml-3 font-bold text-slate-700">{label}</span>
+      </label>
+    );
+
+    const Button = ({ children, onClick, variant = 'primary', className = "", disabled=false }) => {
+      const variants = {
+        primary: "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl",
+        secondary: "bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50",
+        success: "bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-500 hover:to-emerald-600 text-white shadow-lg shadow-teal-200",
+        warning: "bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-lg shadow-orange-200",
+      };
+      
+      return (
+        <button onClick={onClick} disabled={disabled} className={`px-8 py-3 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : 'transform hover:-translate-y-1'} ${className}`}>
+          {children}
+        </button>
+      );
+    };
+
+    // 複製文字功能
+    const copyToClipboard = (text) => {
+      try {
+        navigator.clipboard.writeText(text);
+        alert('📋 已經成功複製提示詞！可以去貼給 AI 囉！');
+      } catch (err) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        alert('📋 已經成功複製提示詞！可以去貼給 AI 囉！');
+      }
+    };
+
+    // ==========================================
+    // 📊 雷達圖元件
+    // ==========================================
+    const RadarChart = ({ scores }) => {
+      const size = 300;
+      const center = size / 2;
+      const radius = size * 0.35;
+      const categories = [
+        { label: 'AI倫理', val: scores.aiEthics },
+        { label: '媒體素養', val: scores.mediaLit },
+        { label: '敘事創意', val: scores.narrative },
+        { label: '宣導價值', val: scores.advocacy },
+        { label: '完成度', val: scores.completion }
+      ];
+      const maxScore = 20;
+
+      const getPoint = (val, index, total) => {
+        const angle = (Math.PI * 2 * index) / total - Math.PI / 2;
+        const r = (val / maxScore) * radius;
+        return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
+      };
+
+      const points = categories.map((c, i) => getPoint(c.val, i, categories.length)).join(' ');
+      const levels = [1, 0.75, 0.5, 0.25];
+
+      return (
+        <div className="flex flex-col items-center">
+          <svg width={size} height={size} className="overflow-visible">
+            {levels.map(level => (
+              <polygon key={level} points={categories.map((_, i) => getPoint(maxScore * level, i, categories.length)).join(' ')} fill="none" stroke="#e2e8f0" strokeWidth="1" />
+            ))}
+            {categories.map((_, i) => {
+              const endPoint = getPoint(maxScore, i, categories.length).split(',');
+              return <line key={`axis-${i}`} x1={center} y1={center} x2={endPoint[0]} y2={endPoint[1]} stroke="#e2e8f0" strokeWidth="1" />
+            })}
+            <polygon points={points} fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" strokeWidth="3" className="transition-all duration-700 ease-out" />
+            {categories.map((c, i) => {
+              const [cx, cy] = getPoint(c.val, i, categories.length).split(',');
+              return <circle key={`dot-${i}`} cx={cx} cy={cy} r="5" fill="#4f46e5" />
+            })}
+            {categories.map((c, i) => {
+              const [x, y] = getPoint(maxScore * 1.25, i, categories.length).split(',');
+              return <text key={`label-${i}`} x={x} y={y} textAnchor="middle" alignmentBaseline="middle" className="text-xs font-bold fill-slate-600">{c.label} ({c.val}分)</text>
+            })}
+          </svg>
+          <div className="mt-4 text-center">
+            <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">總分: {scores.total}</div>
+            <div className="text-sm text-slate-500 mt-1">滿分 100 分</div>
+          </div>
+        </div>
+      );
+    };
+
+    // ==========================================
+    // 🚀 主程式 App
+    // ==========================================
+    const App = () => {
+      const [step, setStep] = useState(0); // 0~4 共五大部份
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      const [submitResult, setSubmitResult] = useState(null);
+
+      // --- 階段完成狀態 ---
+      const [phaseDone, setPhaseDone] = useState([false, false, false, false, false]);
+
+      const markPhaseDone = (index) => {
+        const newPhaseDone = [...phaseDone];
+        newPhaseDone[index] = true;
+        setPhaseDone(newPhaseDone);
+      };
+
+      // --- 表單狀態 ---
+      const [info, setInfo] = useState({ class: '801', group: '', seat: '', name: '', members: '' });
+      const [step1, setStep1] = useState({ type: '', coreIdea: '', action: '', protagonist: '', villain: '', conflict: '', verify: '', ending: '', promptLevel: '', promptContent: '' });
+      const [step2, setStep2] = useState({ proDesc: '', vilDesc: '', promptLevel: '', promptContent: '', consistencyChecks: [] });
+      const [step3, setStep3] = useState({ style: '', emotion: '', promptLevel: '', promptContent: '', musicFileName: '', musicUrl: '' });
+      const [step4, setStep4] = useState({ source1: '', source2: '', verifySteps: '', tools: '', ethicsChecks: [] });
+      const [step5, setStep5] = useState({ completion: '', url: '', reflection: '' });
+
+      const STEPS = [
+        { id: 0, title: "故事腳本", icon: "✍️" },
+        { id: 1, title: "分鏡角色", icon: "🎨" },
+        { id: 2, title: "音樂聲音", icon: "🎵" },
+        { id: 3, title: "倫理查證", icon: "🔍" },
+        { id: 4, title: "評量送出", icon: "🏆" }
+      ];
+
+      // --- 摘要產生器 ---
+      const summary1 = `【AI反詐騙繪本：故事生成設定】\n詐騙類型：${step1.type}\n核心觀念：${step1.coreIdea}\n防詐行動：${step1.action}\n主角設定：${step1.protagonist}\n反派設定：${step1.villain}\n衝突事件：${step1.conflict}\n查證過程：${step1.verify}\n故事結局：${step1.ending}\n\n👉 請根據以上設定，幫我寫一個字數適合繪本、分頁敘述的反詐騙故事。`;
+      
+      const summary2 = `【AI反詐騙繪本：角色一致性設定】\n主角外觀提示詞：${step2.proDesc}\n反派外觀提示詞：${step2.vilDesc}\n\n👉 請幫我產生繪本分鏡圖。請確保每張圖片中的角色都符合上述外觀特徵。`;
+
+      const summary3 = `【AI反詐騙繪本：配樂生成設定】\n故事大綱與情境：本故事是關於「${step1.type}」，主角遭遇「${step1.conflict}」，最後「${step1.ending}」。\n\n期望的音樂風格：${step3.style}\n期望的音樂情緒：${step3.emotion}\n\n👉 請幫我以此情境生成適合的背景音樂提示詞 (Prompt)。`;
+
+      const summary4 = `【AI反詐騙繪本：查證與工具歷程】\n我使用了以下資料來源進行查證：\n1. ${step4.source1}\n2. ${step4.source2}\n\n查證步驟：\n${step4.verifySteps}\n\n使用的 AI 工具：\n${step4.tools}\n\n👉 以上為本作品的查證與倫理自律紀錄。`;
+
+      // --- 評分引擎 ---
+      const scores = useMemo(() => {
+        let aiEthics = 0, mediaLit = 0, narrative = 0, advocacy = 0, completion = 0;
+
+        const pLevels = [step1.promptLevel, step2.promptLevel, step3.promptLevel];
+        let promptScore = pLevels.includes('original') ? 14 : pLevels.includes('modify') ? 10 : 6;
+        aiEthics = promptScore + (step4.ethicsChecks.length * 2);
+
+        if (step4.source1) mediaLit += 7;
+        if (step4.source2) mediaLit += 6;
+        if (step4.verifySteps.length > 10) mediaLit += 7;
+
+        if (step1.conflict.length > 10) narrative += 5;
+        if (step1.ending.length > 10) narrative += 5;
+        narrative += (step2.consistencyChecks.length * 5);
+
+        if (step1.type) advocacy += 4;
+        if (step1.coreIdea.length > 10) advocacy += 8;
+        if (step1.action.length > 10) advocacy += 8;
+
+        if (step5.completion === 'full') completion = 20;
+        else if (step5.completion === 'partial') completion = 12;
+        else if (step5.completion === 'none') completion = 5;
+
+        return { aiEthics, mediaLit, narrative, advocacy, completion, total: aiEthics + mediaLit + narrative + advocacy + completion };
+      }, [step1, step2, step3, step4, step5]);
+
+      const handleArrayChange = (state, setState, arrayName, value, isChecked) => {
+        setState(prev => ({ ...prev, [arrayName]: isChecked ? [...prev[arrayName], value] : prev[arrayName].filter(item => item !== value) }));
+      };
+
+      const handleSubmit = async () => {
+        if (!GAS_URL) { alert("請老師先在原始碼中填寫 GAS_URL！"); return; }
+        setIsSubmitting(true);
+        setSubmitResult(null);
+
+        const payload = {
+          時間戳記: new Date().toLocaleString('zh-TW'),
+          班級: info.class, 組別: info.group, 座號: info.seat, 姓名: info.name, 其他組員: info.members,
+          詐騙類型: step1.type, 核心防詐觀念: step1.coreIdea, 行動建議: step1.action,
+          主角設定: step1.protagonist, 反派設定: step1.villain, 衝突設計: step1.conflict, 查證過程: step1.verify, 故事結局: step1.ending, 
+          腳本提示詞等級: step1.promptLevel, 腳本提示詞內容: step1.promptContent,
+          主角固定描述: step2.proDesc, 反派固定描述: step2.vilDesc, 
+          圖像提示詞等級: step2.promptLevel, 圖像提示詞內容: step2.promptContent, 角色一致性: step2.consistencyChecks.join(', '),
+          音樂風格: step3.style, 音樂情緒: step3.emotion, 
+          音樂提示詞等級: step3.promptLevel, 音樂提示詞內容: step3.promptContent,
+          音樂檔案名稱: step3.musicFileName, 音樂連結: step3.musicUrl,
+          查證來源1: step4.source1, 查證來源2: step4.source2, 查證步驟說明: step4.verifySteps, 使用AI工具說明: step4.tools, 倫理自評項目: step4.ethicsChecks.join(', '),
+          完成度自評: step5.completion, 作品連結: step5.url, 創作心得: step5.reflection,
+          分數_AI倫理: scores.aiEthics, 分數_媒體素養: scores.mediaLit, 分數_敘事創意: scores.narrative, 分數_宣導價值: scores.advocacy, 分數_整體完成度: scores.completion, 總分: scores.total
+        };
+
+        try {
+          const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+          const result = await response.json();
+          setSubmitResult(result.status === 'success' ? 'success' : 'error');
+        } catch (error) {
+          setSubmitResult('error');
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+
+      return (
+        <div id="app-container" className="min-h-screen py-10 px-4 max-w-5xl mx-auto">
+          
+          <div className="text-center mb-10 no-print">
+            <div className="inline-block bg-yellow-300 text-yellow-900 px-4 py-1 rounded-full font-bold text-sm mb-4">AI 識詐行動有聲繪本創作</div>
+            <h1 className="text-4xl md:text-5xl font-black text-blue-900 mb-4 tracking-tight">🎨 繪本創作實驗室</h1>
+            <p className="text-slate-500 text-lg">跟著 5 大階段，一步步完成你的反詐騙大作！</p>
+          </div>
+
+          {/* 進度條 */}
+          <div className="mb-8 no-print overflow-x-auto pb-4">
+            <div className="flex justify-between items-center min-w-[600px] max-w-4xl mx-auto px-4">
+              {STEPS.map((s, index) => (
+                <div key={s.id} className="flex flex-col items-center relative z-10 w-full cursor-pointer" onClick={() => phaseDone[index-1] || index===0 ? setStep(index) : null}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold border-4 transition-all duration-500 ${step === index ? 'bg-blue-500 border-blue-200 text-white shadow-lg shadow-blue-300 transform scale-110' : phaseDone[index] ? 'bg-green-500 border-green-200 text-white' : 'bg-white border-slate-200 text-slate-400'}`}>
+                    {phaseDone[index] && step !== index ? '✓' : s.icon}
+                  </div>
+                  <div className={`mt-2 text-xs font-bold transition-all ${step === index ? 'text-blue-700' : 'text-slate-400'}`}>{s.title}</div>
+                  {index < STEPS.length - 1 && <div className="absolute top-6 left-1/2 w-full h-1 -z-10"><div className={`h-full transition-all duration-500 ${phaseDone[index] ? 'bg-green-400' : 'bg-slate-200'}`}></div></div>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="min-h-[500px]">
+            {/* ============================================================== */}
+            {/* 第 1 部份：基本資料與故事腳本 */}
+            {/* ============================================================== */}
+            {step === 0 && (
+              <div className="space-y-6">
+                <Card>
+                  <h2 className="text-2xl font-black text-blue-800 mb-6 flex items-center gap-3">👋 1-A. 填寫基本資料</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><Label>班級</Label><Input placeholder="例：801" value={info.class} onChange={e => setInfo({...info, class: e.target.value})} /></div>
+                    <div><Label>組別</Label><Input placeholder="例：第 1 組" value={info.group} onChange={e => setInfo({...info, group: e.target.value})} /></div>
+                    <div><Label>座號</Label><Input placeholder="你的座號" type="number" value={info.seat} onChange={e => setInfo({...info, seat: e.target.value})} /></div>
+                    <div><Label>姓名</Label><Input placeholder="真實姓名" value={info.name} onChange={e => setInfo({...info, name: e.target.value})} /></div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <h2 className="text-2xl font-black text-blue-800 mb-6 flex items-center gap-3">🎯 1-B. 議題選擇與防詐觀念</h2>
+                  <Label>你要破解的詐騙類型？</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {['網路購物詐騙', '假投資群組', 'AI深偽詐騙', '假冒客服'].map(type => (
+                      <RadioButton key={type} name="fraudType" label={type} value={type} checked={step1.type === type} onChange={e => setStep1({...step1, type: e.target.value})} />
+                    ))}
+                    <div className="col-span-1 md:col-span-2"><Input placeholder="其他類型（自行輸入）" value={!['網路購物詐騙', '假投資群組', 'AI深偽詐騙', '假冒客服', ''].includes(step1.type) ? step1.type : ''} onChange={e => setStep1({...step1, type: e.target.value})} /></div>
+                  </div>
+                  <div className="mb-6"><Label>核心宣導觀念</Label><TextArea placeholder="例：太便宜一定有詐..." value={step1.coreIdea} onChange={e => setStep1({...step1, coreIdea: e.target.value})} /></div>
+                  <div><Label>防詐行動建議</Label><TextArea placeholder="例：立刻打 165..." value={step1.action} onChange={e => setStep1({...step1, action: e.target.value})} /></div>
+                </Card>
+
+                <Card>
+                  <h2 className="text-2xl font-black text-blue-800 mb-6 flex items-center gap-3">✍️ 1-C. 故事腳本創作</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div><Label>主角設定</Label><Input placeholder="例：小明，12歲，愛打電動" value={step1.protagonist} onChange={e => setStep1({...step1, protagonist: e.target.value})} /></div>
+                    <div><Label>反派設定</Label><Input placeholder="例：假冒客服的騙子" value={step1.villain} onChange={e => setStep1({...step1, villain: e.target.value})} /></div>
+                    <div className="md:col-span-2"><Label>衝突設計 (發生了什麼事？)</Label><TextArea placeholder="例：收到簡訊說帳號被盜..." value={step1.conflict} onChange={e => setStep1({...step1, conflict: e.target.value})} /></div>
+                    <div className="md:col-span-2"><Label>查證過程 (如何發現怪怪的？)</Label><TextArea placeholder="例：覺得語氣很急，去官網查..." value={step1.verify} onChange={e => setStep1({...step1, verify: e.target.value})} /></div>
+                    <div className="md:col-span-2"><Label>故事結局</Label><TextArea placeholder="例：沒買點數並檢舉..." value={step1.ending} onChange={e => setStep1({...step1, ending: e.target.value})} /></div>
+                  </div>
+
+                  {!phaseDone[0] ? (
+                    <div className="text-center mt-8">
+                      <Button onClick={() => markPhaseDone(0)} variant="success" className="mx-auto text-xl py-4 px-10 animate-pulse">
+                        ✨ 產生故事提示詞小整合 (完成第一階段)
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="fade-in space-y-8 mt-8 border-t-4 border-dashed border-teal-200 pt-8">
+                      <div className="bg-teal-50 border-l-4 border-teal-500 p-6 rounded-r-2xl shadow-inner">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-bold text-teal-800 text-xl">💡 你的專屬故事提示詞小整合</h3>
+                          <Button onClick={() => copyToClipboard(summary1)} variant="primary" className="text-sm py-2 px-4">📋 一鍵複製</Button>
+                        </div>
+                        <pre className="whitespace-pre-wrap text-teal-900 font-sans text-lg bg-white p-4 rounded-xl border border-teal-200">{summary1}</pre>
+                        <p className="mt-3 text-teal-600 text-sm">請將上方文字複製，貼給 ChatGPT / Gemini 讓它幫你寫出完整故事！</p>
+                      </div>
+
+                      <div className="p-8 bg-slate-50 rounded-3xl border-2 border-slate-200 shadow-sm">
+                        <h3 className="font-bold text-slate-800 text-xl mb-4">🤖 貼上你實際使用的 AI 提示詞</h3>
+                        <div className="grid grid-cols-1 gap-3 mb-6">
+                          <RadioButton name="scriptPrompt" value="copy" label="Level 1: 照抄老師提供的提示詞" subLabel="最高獲得 60% 分數" checked={step1.promptLevel === 'copy'} onChange={e => setStep1({...step1, promptLevel: e.target.value})} />
+                          <RadioButton name="scriptPrompt" value="modify" label="Level 2: 有修改與優化提示詞" subLabel="最高獲得 80% 分數" checked={step1.promptLevel === 'modify'} onChange={e => setStep1({...step1, promptLevel: e.target.value})} />
+                          <RadioButton name="scriptPrompt" value="original" label="Level 3: 完全自創提示詞" subLabel="獲得 100% 分數" checked={step1.promptLevel === 'original'} onChange={e => setStep1({...step1, promptLevel: e.target.value})} />
+                        </div>
+                        <Label>請貼上你最後實際送給 AI 的完整提示詞：</Label>
+                        <TextArea placeholder="將你給 AI 的對話貼在這裡..." value={step1.promptContent} onChange={e => setStep1({...step1, promptContent: e.target.value})} />
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </div>
+            )}
+
+            {/* ============================================================== */}
+            {/* 第 2 部份：分鏡與角色 */}
+            {/* ============================================================== */}
+            {step === 1 && (
+              <Card>
+                <div className="bg-pink-50 border-l-4 border-pink-500 p-4 mb-8 rounded-r-xl">
+                  <h3 className="font-bold text-pink-800 text-lg">🎨 模組2：視覺影像與角色一致性</h3>
+                  <p className="text-pink-600 mt-1">繪本的畫面需要連貫，你如何讓 AI 每次畫的主角都長一樣？</p>
+                </div>
+
+                <div className="space-y-6 mb-8">
+                  <div>
+                    <Label>主角固定外觀描述 (強烈建議用英文)</Label>
+                    <Input placeholder="例：a 10-year-old boy, short black hair, wearing a yellow T-shirt..." value={step2.proDesc} onChange={e => setStep2({...step2, proDesc: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>反派固定外觀描述 (強烈建議用英文)</Label>
+                    <Input placeholder="例：a mysterious figure in a dark cloak..." value={step2.vilDesc} onChange={e => setStep2({...step2, vilDesc: e.target.value})} />
+                  </div>
+                </div>
+
+                {!phaseDone[1] ? (
+                  <div className="text-center mt-8">
+                    <Button onClick={() => markPhaseDone(1)} variant="success" className="mx-auto text-xl py-4 px-10 animate-pulse">
+                      ✨ 產生角色提示詞小整合 (完成第二階段)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="fade-in space-y-8 mt-8 border-t-4 border-dashed border-pink-200 pt-8">
+                    <div className="bg-pink-50 border-l-4 border-pink-500 p-6 rounded-r-2xl shadow-inner">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-pink-800 text-xl">💡 你的角色設定小整合</h3>
+                        <Button onClick={() => copyToClipboard(summary2)} variant="primary" className="text-sm py-2 px-4">📋 一鍵複製</Button>
+                      </div>
+                      <pre className="whitespace-pre-wrap text-pink-900 font-sans text-lg bg-white p-4 rounded-xl border border-pink-200">{summary2}</pre>
+                    </div>
+
+                    <div className="p-8 bg-slate-50 rounded-3xl border-2 border-slate-200">
+                       <h3 className="font-bold text-slate-800 text-xl mb-4">🤖 圖像提示詞紀錄</h3>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                        <RadioButton name="imgPrompt" value="copy" label="套用老師模板" checked={step2.promptLevel === 'copy'} onChange={e => setStep2({...step2, promptLevel: e.target.value})} />
+                        <RadioButton name="imgPrompt" value="modify" label="修改部分風格" checked={step2.promptLevel === 'modify'} onChange={e => setStep2({...step2, promptLevel: e.target.value})} />
+                        <RadioButton name="imgPrompt" value="original" label="完全自創提示詞" checked={step2.promptLevel === 'original'} onChange={e => setStep2({...step2, promptLevel: e.target.value})} />
+                      </div>
+                      <Label>紀錄你最滿意的一張圖的提示詞：</Label>
+                      <TextArea placeholder="貼上生圖提示詞..." value={step2.promptContent} onChange={e => setStep2({...step2, promptContent: e.target.value})} />
+                      
+                      <div className="mt-6 border-t-2 border-slate-200 pt-6">
+                        <Label>✅ 角色一致性自我檢核</Label>
+                        <div className="space-y-3 mt-3">
+                          <Checkbox label="我的每頁提示詞都有加上「固定角色描述」" checked={step2.consistencyChecks.includes('desc')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'desc', e.target.checked)} />
+                          <Checkbox label="產出的繪本圖片中，主角看起來是同一個人" checked={step2.consistencyChecks.includes('visual')} onChange={e => handleArrayChange(step2, setStep2, 'consistencyChecks', 'visual', e.target.checked)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {/* ============================================================== */}
+            {/* 第 3 部份：音樂聲音 */}
+            {/* ============================================================== */}
+            {step === 2 && (
+              <Card>
+                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-xl">
+                  <h3 className="font-bold text-yellow-800 text-lg">🎵 模組3：音樂與聲音生成</h3>
+                  <p className="text-yellow-600 mt-1">結合你的故事劇情，為繪本配上最適合的靈魂音樂！</p>
+                </div>
+
+                {/* 顯示第一階段的故事，唯讀 */}
+                <div className="mb-8 p-6 bg-slate-100 rounded-2xl border-2 border-slate-200 text-slate-600">
+                  <h4 className="font-bold text-slate-800 mb-2">回顧你的故事設定：</h4>
+                  <p className="text-sm">詐騙類型：{step1.type || '(尚未填寫)'}</p>
+                  <p className="text-sm">衝突：{step1.conflict || '(尚未填寫)'}</p>
+                  <p className="text-sm">結局：{step1.ending || '(尚未填寫)'}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <Label>音樂風格</Label>
+                    <Input placeholder="例：懸疑、輕快、童話風" value={step3.style} onChange={e => setStep3({...step3, style: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>情緒設定</Label>
+                    <Input placeholder="例：緊張、警覺、安心" value={step3.emotion} onChange={e => setStep3({...step3, emotion: e.target.value})} />
+                  </div>
+                </div>
+
+                {!phaseDone[2] ? (
+                  <div className="text-center mt-8">
+                    <Button onClick={() => markPhaseDone(2)} variant="success" className="mx-auto text-xl py-4 px-10 animate-pulse">
+                      ✨ 結合故事產生音樂總結 (完成第三階段)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="fade-in space-y-8 mt-8 border-t-4 border-dashed border-yellow-200 pt-8">
+                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-2xl shadow-inner">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-yellow-800 text-xl">💡 你的專屬音樂生成提示詞小總結</h3>
+                        <Button onClick={() => copyToClipboard(summary3)} variant="primary" className="text-sm py-2 px-4">📋 一鍵複製</Button>
+                      </div>
+                      <pre className="whitespace-pre-wrap text-yellow-900 font-sans text-lg bg-white p-4 rounded-xl border border-yellow-200">{summary3}</pre>
+                    </div>
+
+                    <div className="p-8 bg-slate-50 rounded-3xl border-2 border-slate-200">
+                       <h3 className="font-bold text-slate-800 text-xl mb-4">🤖 音樂提示詞與檔案繳交</h3>
+                       
+                       <div className="grid grid-cols-1 gap-3 mb-6">
+                        <RadioButton name="musicPrompt" value="copy" label="Level 1: 使用老師提示詞 (60%)" checked={step3.promptLevel === 'copy'} onChange={e => setStep3({...step3, promptLevel: e.target.value})} />
+                        <RadioButton name="musicPrompt" value="modify" label="Level 2: 增加樂器或情緒修改 (80%)" checked={step3.promptLevel === 'modify'} onChange={e => setStep3({...step3, promptLevel: e.target.value})} />
+                        <RadioButton name="musicPrompt" value="original" label="Level 3: 完全自創音樂風格與結構 (100%)" checked={step3.promptLevel === 'original'} onChange={e => setStep3({...step3, promptLevel: e.target.value})} />
+                      </div>
+                      
+                      <div className="mb-6">
+                        <Label>填寫你實際使用的提示詞 (如 Suno Prompt)：</Label>
+                        <TextArea placeholder="例：Suspenseful orchestral music, fast tempo..." value={step3.promptContent} onChange={e => setStep3({...step3, promptContent: e.target.value})} />
+                      </div>
+
+                      <div className="p-6 bg-blue-50 border-2 border-blue-200 rounded-xl space-y-4">
+                        <h4 className="font-bold text-blue-800">📂 繳交 Suno 音樂檔案</h4>
+                        <div>
+                          <Label>1. 選擇你要繳交的 MP3 檔案（紀錄檔名）</Label>
+                          <input type="file" accept="audio/*" className="block w-full text-lg text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                                 onChange={(e) => setStep3({...step3, musicFileName: e.target.files[0]?.name || ''})} />
+                        </div>
+                        <div>
+                          <Label>2. 貼上 Suno 音樂公開連結（必填）</Label>
+                          <Input placeholder="https://suno.com/song/..." value={step3.musicUrl} onChange={e => setStep3({...step3, musicUrl: e.target.value})} />
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {/* ============================================================== */}
+            {/* 第 4 部份：AI倫理與查證 */}
+            {/* ============================================================== */}
+            {step === 3 && (
+              <Card>
+                <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-8 rounded-r-xl">
+                  <h3 className="font-bold text-green-800 text-lg">🔍 模組4：AI倫理與資訊查證</h3>
+                  <p className="text-green-600 mt-1">防詐騙資訊絕對不能出錯！請確實紀錄查證過程與工具。</p>
+                </div>
+
+                <div className="space-y-6 mb-8">
+                  <div>
+                    <Label>📚 資訊查證來源 (至少填寫兩項)</Label>
+                    <Input placeholder="來源 1 (網址或文章名稱)" className="mb-3" value={step4.source1} onChange={e => setStep4({...step4, source1: e.target.value})} />
+                    <Input placeholder="來源 2 (網址或文章名稱)" value={step4.source2} onChange={e => setStep4({...step4, source2: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>🔍 查證步驟說明</Label>
+                    <TextArea placeholder="例：先 Google 搜尋關鍵字，再比對 165 網站..." value={step4.verifySteps} onChange={e => setStep4({...step4, verifySteps: e.target.value})} />
+                  </div>
+                  <div>
+                    <Label>🛠️ 本作品使用的所有 AI 工具</Label>
+                    <Input placeholder="例：ChatGPT (劇本), Midjourney (圖像), Suno (音樂)" value={step4.tools} onChange={e => setStep4({...step4, tools: e.target.value})} />
+                  </div>
+                </div>
+
+                {!phaseDone[3] ? (
+                  <div className="text-center mt-8">
+                    <Button onClick={() => markPhaseDone(3)} variant="success" className="mx-auto text-xl py-4 px-10 animate-pulse">
+                      ✨ 產生查證與倫理小總結 (完成第四階段)
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="fade-in space-y-8 mt-8 border-t-4 border-dashed border-green-200 pt-8">
+                    <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-2xl shadow-inner">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-green-800 text-xl">💡 查證歷程與工具總結</h3>
+                        <Button onClick={() => copyToClipboard(summary4)} variant="primary" className="text-sm py-2 px-4">📋 一鍵複製</Button>
+                      </div>
+                      <pre className="whitespace-pre-wrap text-green-900 font-sans text-lg bg-white p-4 rounded-xl border border-green-200">{summary4}</pre>
+                    </div>
+
+                    <div className="p-8 bg-slate-50 rounded-3xl border-2 border-slate-200">
+                      <Label>⚖️ 最終 AI 倫理自我檢核 (皆須做到)</Label>
+                      <div className="space-y-3 mt-3">
+                        <Checkbox label="我確認產出的內容沒有偏見或歧視色彩" checked={step4.ethicsChecks.includes('bias')} onChange={e => handleArrayChange(step4, setStep4, 'ethicsChecks', 'bias', e.target.checked)} />
+                        <Checkbox label="我沒有使用有版權爭議的圖片作為圖生圖來源" checked={step4.ethicsChecks.includes('copyright')} onChange={e => handleArrayChange(step4, setStep4, 'ethicsChecks', 'copyright', e.target.checked)} />
+                        <Checkbox label="我沒有利用 AI 換臉 (深偽技術) 來惡搞真實人物" checked={step4.ethicsChecks.includes('deepfake')} onChange={e => handleArrayChange(step4, setStep4, 'ethicsChecks', 'deepfake', e.target.checked)} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {/* ============================================================== */}
+            {/* 第 5 部份：評量與送出 */}
+            {/* ============================================================== */}
+            {step === 4 && (
+              <div className="space-y-8">
+                <Card className="no-print">
+                  <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-8 rounded-r-xl">
+                    <h3 className="font-bold text-indigo-800 text-lg">🏆 模組5：作品完成度與提交</h3>
+                    <p className="text-indigo-600 mt-1">最後一步囉！請將你的影片雲端連結貼上並繳交。</p>
+                  </div>
+
+                  <div className="mb-8">
+                    <Label>作品整體完成度</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <RadioButton name="completion" value="none" label="未完成" subLabel="只有零星素材" checked={step5.completion === 'none'} onChange={e => setStep5({...step5, completion: e.target.value})} />
+                      <RadioButton name="completion" value="partial" label="部分完成" subLabel="影片有畫面無聲音" checked={step5.completion === 'partial'} onChange={e => setStep5({...step5, completion: e.target.value})} />
+                      <RadioButton name="completion" value="full" label="全部完成" subLabel="包含完整圖文與聲音" checked={step5.completion === 'full'} onChange={e => setStep5({...step5, completion: e.target.value})} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6 mb-8">
+                    <div>
+                      <Label>🔗 影片作品連結 (YouTube / 雲端硬碟)</Label>
+                      <Input placeholder="請貼上你的影片網址，請務必確認權限已開為「知道連結的人皆可查看」" value={step5.url} onChange={e => setStep5({...step5, url: e.target.value})} />
+                    </div>
+                    <div>
+                      <Label>💭 創作心得 (選填)</Label>
+                      <TextArea placeholder="這次創作你學到了什麼？" value={step5.reflection} onChange={e => setStep5({...step5, reflection: e.target.value})} />
+                    </div>
+                  </div>
+                </Card>
+
+                <Card>
+                  <h2 className="text-3xl font-black text-center text-blue-900 mb-8">📊 你的多元評量報告</h2>
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-12">
+                    <RadarChart scores={scores} />
+                    <div className="w-full md:w-1/2 space-y-4">
+                      {Object.entries({
+                        'AI倫理與工具運用': { score: scores.aiEthics, color: 'text-indigo-600' },
+                        '媒體素養與查證': { score: scores.mediaLit, color: 'text-teal-600' },
+                        '敘事創意與視覺': { score: scores.narrative, color: 'text-pink-600' },
+                        '宣導價值與實用性': { score: scores.advocacy, color: 'text-yellow-600' },
+                        '整體完成度': { score: scores.completion, color: 'text-blue-600' }
+                      }).map(([label, { score, color }]) => (
+                        <div key={label} className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
+                          <span className="font-bold text-slate-700">{label}</span>
+                          <span className={`text-xl font-black ${color}`}>{score} / 20</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 no-print">
+                    <Button onClick={() => window.print()} variant="secondary" className="w-full sm:w-auto">🖨️ 列印/儲存 PDF</Button>
+                    <Button onClick={handleSubmit} variant="primary" disabled={isSubmitting} className="w-full sm:w-auto">
+                      {isSubmitting ? '傳送中...' : '🚀 繳交紀錄至試算表'}
+                    </Button>
+                  </div>
+
+                  {submitResult === 'success' && <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-xl text-center font-bold animate-bounce no-print">✅ 繳交成功！老師已經收到你的作品紀錄囉！</div>}
+                  {submitResult === 'error' && <div className="mt-6 p-4 bg-red-100 text-red-800 rounded-xl text-center font-bold no-print">❌ 繳交失敗，請確認 GAS URL 是否正確設定。</div>}
+                </Card>
+              </div>
+            )}
+          </div>
+
+          {/* 底部導覽列 */}
+          <div className="mt-10 flex justify-between max-w-4xl mx-auto no-print">
+            <Button onClick={() => setStep(s => s - 1)} variant="secondary" disabled={step === 0} className={step === 0 ? 'invisible' : ''}>← 上一步</Button>
+            {step < STEPS.length - 1 && (
+               <Button onClick={() => setStep(s => s + 1)} variant="primary" disabled={!phaseDone[step]}>
+                 {phaseDone[step] ? '下一步 →' : '請先完成本階段'}
+               </Button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
