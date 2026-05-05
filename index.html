@@ -63,6 +63,65 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--g9);
 .s-line.done{background:linear-gradient(90deg,var(--green),var(--lime))}
 .pbar-track{max-width:720px;margin:.8rem auto 0;height:6px;background:var(--g1);border-radius:99px;overflow:hidden}
 .pbar-fill{height:100%;background:linear-gradient(90deg,#7C3AED,#F43F5E,#F97316);border-radius:99px;transition:.5s ease}
+/* Phase labels under progress bar */
+.pbar-phase-labels{display:flex;max-width:720px;margin:.3rem auto 0;font-size:.65rem;font-weight:700}
+.pbl-1{flex:3;color:var(--blue)} .pbl-2{flex:4;text-align:right;color:var(--orange)}
+
+/* ── PHASE COMPLETE MODAL ── */
+.phase-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;align-items:center;justify-content:center}
+.phase-modal.show{display:flex}
+.phase-modal-box{background:#fff;border-radius:24px;padding:2.5rem 3rem;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.phase-modal-emoji{font-size:3.5rem;margin-bottom:.8rem;display:block}
+.phase-modal-title{font-size:1.4rem;font-weight:900;color:var(--g9);margin-bottom:.5rem}
+.phase-modal-desc{font-size:.92rem;color:var(--g5);line-height:1.65;margin-bottom:1.5rem}
+.phase-modal-btn{background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;border:none;border-radius:14px;padding:.9rem 2.2rem;font-family:'Noto Sans TC',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 5px 16px rgba(249,115,22,.35);transition:.2s}
+.phase-modal-btn:hover{transform:translateY(-2px)}
+
+/* ── PROMPT LEVEL INFO ── */
+.prompt-level-info{background:linear-gradient(135deg,#F8F4FF,#FFF0FB);border:2.5px solid #E9D5FF;border-radius:18px;padding:1.4rem 1.5rem;margin-bottom:1rem}
+.pli-title{font-size:.95rem;font-weight:900;color:var(--purple);margin-bottom:1rem}
+.pli-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+@media(max-width:600px){.pli-grid{grid-template-columns:1fr}}
+.pli-card{background:#fff;border-radius:14px;padding:1rem .9rem;text-align:center;border:2.5px solid var(--g3)}
+.pli-card.lv-copy{border-color:#FCA5A5} .pli-card.lv-modify{border-color:#FCD34D} .pli-card.lv-original{border-color:#86EFAC}
+.lv-icon{font-size:1.6rem;margin-bottom:.3rem}
+.lv-label{font-weight:700;font-size:.85rem;color:var(--g9);margin-bottom:.25rem}
+.lv-score{font-size:1.1rem;font-weight:900;margin-bottom:.3rem}
+.lv-copy .lv-score{color:#DC2626} .lv-modify .lv-score{color:#D97706} .lv-original .lv-score{color:#16A34A}
+.lv-desc{font-size:.75rem;color:var(--g5);line-height:1.4}
+.lvl-btn{padding:.55rem 1.3rem;border-radius:99px;border:2.5px solid var(--g3);background:#fff;font-family:'Noto Sans TC',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:.2s;color:var(--g7)}
+.lvl-btn:hover{border-color:var(--purple);background:var(--purple-l);color:var(--purple)}
+.lvl-btn.active-copy{background:#FEE2E2;border-color:#EF4444;color:#DC2626}
+.lvl-btn.active-modify{background:#FEF3C7;border-color:#F59E0B;color:#B45309}
+.lvl-btn.active-original{background:#DCFCE7;border-color:#22C55E;color:#16A34A}
+
+/* ── EXAMPLE BLOCKS ── */
+.example-block{background:#FAFAFA;border:2.5px solid var(--g3);border-radius:18px;overflow:hidden}
+.ex-head{background:linear-gradient(135deg,#F5F3FF,#EFF6FF);padding:1rem 1.3rem;display:flex;align-items:center;gap:.75rem;border-bottom:2px solid var(--g3)}
+.ex-num{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border-radius:99px;padding:.25rem .8rem;font-size:.8rem;font-weight:900;white-space:nowrap}
+.ex-title{font-weight:700;font-size:.95rem;color:var(--g9)}
+.ex-prompt{position:relative;padding:1.2rem 1.3rem;border-bottom:2px solid var(--g3);background:#fff}
+.ex-prompt-text{font-size:.9rem;line-height:1.85;color:var(--g7);padding-right:80px;word-break:break-word}
+.ex-prompt-text mark{background:linear-gradient(135deg,#FDE68A,#FEF3C7);color:#92400E;border-radius:4px;padding:1px 4px;font-weight:700}
+.ex-copy-btn{position:absolute;top:1.2rem;right:1rem;background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;border:none;border-radius:10px;padding:.45rem .9rem;font-family:'Noto Sans TC',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap}
+.ex-copy-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(14,165,233,.35)}
+.ex-copy-btn.copied{background:linear-gradient(135deg,var(--green),var(--lime))}
+.ex-breakdown{padding:1.2rem 1.3rem;background:linear-gradient(135deg,#FFFBEB,#F0FFF4)}
+.ex-bd-title{font-size:.88rem;font-weight:900;color:var(--g7);margin-bottom:.85rem}
+.ex-bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:580px){.ex-bd-grid{grid-template-columns:1fr}}
+.ex-bd-item{background:#fff;border-radius:12px;padding:.9rem 1rem;border:2px solid var(--g3)}
+.ex-bd-tag{display:inline-block;padding:.2rem .7rem;border-radius:6px;font-size:.72rem;font-weight:900;margin-bottom:.45rem}
+.ex-bd-tag.role{background:#EDE9FE;color:#7C3AED} .ex-bd-tag.task{background:#DBEAFE;color:#1D4ED8}
+.ex-bd-tag.format{background:#D1FAE5;color:#065F46} .ex-bd-tag.tip{background:#FEF3C7;color:#92400E}
+.ex-bd-desc{font-size:.8rem;color:var(--g7);line-height:1.55}
+
+/* ── PHASE SEPARATOR (in card) ── */
+.phase-sep{display:flex;align-items:center;gap:.8rem;margin:2rem 0 0;padding:1.5rem 2.5rem;background:linear-gradient(135deg,#FFF7ED,#FFFBEB);border-radius:0 0 24px 24px;border-top:2px dashed var(--g3);text-align:center}
+.phase-sep-inner{width:100%;text-align:center}
+.phase-sep-title{font-size:1.1rem;font-weight:900;color:var(--orange);margin-bottom:.3rem}
+.phase-sep-desc{font-size:.85rem;color:var(--g5)}
 
 /* ── MAIN ── */
 .main{max-width:860px;margin:0 auto;padding:2rem 1rem 4rem}
@@ -231,6 +290,24 @@ hr{border:none;border-top:2px dashed var(--g3);margin:1.5rem 0;opacity:.6}
     <!-- generated by JS -->
   </div>
   <div class="pbar-track"><div class="pbar-fill" id="pbarFill" style="width:0%"></div></div>
+  <div class="pbar-phase-labels">
+    <div class="pbl-1">📖 第一階段：故事創作</div>
+    <div class="pbl-2">🎬 第二階段：AI 生成製作</div>
+  </div>
+</div>
+
+<!-- Phase Complete Modal -->
+<div class="phase-modal" id="phaseModal">
+  <div class="phase-modal-box">
+    <span class="phase-modal-emoji">🎉</span>
+    <div class="phase-modal-title">第一階段完成！</div>
+    <div class="phase-modal-desc">
+      太棒了！你已完成基本資料、議題選擇與故事腳本設計。<br><br>
+      接下來進入<strong>第二階段</strong>，使用 AI 工具生成圖像、音樂，並完成倫理查證。<br><br>
+      💡 <em>記得先把故事腳本丟給 AI 生成內容，再繼續填寫後面的步驟！</em>
+    </div>
+    <button class="phase-modal-btn" onclick="closePhaseModal()">開始第二階段 🚀</button>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -255,13 +332,7 @@ hr{border:none;border-top:2px dashed var(--g3);margin:1.5rem 0;opacity:.6}
     </div>
     <div class="form-group">
       <label class="form-label">組別 <span class="req">*</span></label>
-      <select id="s0_group">
-        <option value="">請選擇組別</option>
-        <option value="第1組">第1組</option><option value="第2組">第2組</option>
-        <option value="第3組">第3組</option><option value="第4組">第4組</option>
-        <option value="第5組">第5組</option><option value="第6組">第6組</option>
-        <option value="第7組">第7組</option><option value="第8組">第8組</option>
-      </select>
+      <input type="text" id="s0_group" placeholder="請輸入組別，例如：第1組、A組、紅隊…">
     </div>
   </div>
   <div class="form-row">
@@ -331,36 +402,115 @@ hr{border:none;border-top:2px dashed var(--g3);margin:1.5rem 0;opacity:.6}
     <div><div class="s-title">模組 2｜故事腳本創作</div><div class="s-sub">設計你的反詐騙故事內容（影響創意分數！）</div></div>
   </div>
 
-  <div class="section-label"><span class="n-badge">1</span> AI 提示詞使用方式（影響評分上限）</div>
-  <div class="radio-group" id="promptLevel">
-    <label class="r-opt" onclick="selectPromptLevel(this,'copy')">
-      <input type="radio" name="promptLvl" value="copy">
-      <div>
-        <div class="r-label-text">📋 使用老師提供的提示詞（照抄）</div>
-        <div class="r-label-desc">直接使用老師給的 AI 提示詞模板，不做任何修改</div>
-        <span class="badge badge-red" style="margin-top:6px">創意分數上限 60%</span>
+  <div class="section-label"><span class="n-badge">1</span> AI 提示詞使用方式說明</div>
+
+  <!-- 分數說明卡 -->
+  <div class="prompt-level-info">
+    <div class="pli-title">📊 提示詞等級與評分說明</div>
+    <div class="pli-grid">
+      <div class="pli-card lv-copy">
+        <div class="lv-icon">📋</div>
+        <div class="lv-label">照抄老師提示詞</div>
+        <div class="lv-score">上限 60 分</div>
+        <div class="lv-desc">直接使用老師給的模板，沒有任何修改</div>
       </div>
-    </label>
-    <label class="r-opt" onclick="selectPromptLevel(this,'modify')">
-      <input type="radio" name="promptLvl" value="modify">
-      <div>
-        <div class="r-label-text">✏️ 修改老師的提示詞</div>
-        <div class="r-label-desc">以老師提示詞為基礎，加入自己的角色、情節或調整風格</div>
-        <span class="badge badge-orange" style="margin-top:6px">創意分數上限 80%</span>
+      <div class="pli-card lv-modify">
+        <div class="lv-icon">✏️</div>
+        <div class="lv-label">修改老師提示詞</div>
+        <div class="lv-score">上限 80 分</div>
+        <div class="lv-desc">在老師範本上加入自己的角色、情節或調整風格</div>
       </div>
-    </label>
-    <label class="r-opt" onclick="selectPromptLevel(this,'original')">
-      <input type="radio" name="promptLvl" value="original">
-      <div>
-        <div class="r-label-text">🌟 完全自行設計提示詞</div>
-        <div class="r-label-desc">自己設計角色、衝突、查證流程，提示詞全部原創</div>
-        <span class="badge badge-green" style="margin-top:6px">創意分數上限 100%</span>
+      <div class="pli-card lv-original">
+        <div class="lv-icon">🌟</div>
+        <div class="lv-label">完全自創提示詞</div>
+        <div class="lv-score">上限 100 分</div>
+        <div class="lv-desc">從零設計所有提示詞，角色、衝突、查證均為原創</div>
       </div>
-    </label>
+    </div>
+    <!-- 提示詞等級選擇（簡化版） -->
+    <div style="margin-top:1rem">
+      <div style="font-weight:700;font-size:.88rem;color:var(--g7);margin-bottom:.5rem">✅ 你這次使用的是哪種方式？</div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="lvl-btn" id="lvlCopy" onclick="setPromptLvl('copy',this)">📋 照抄老師</button>
+        <button class="lvl-btn" id="lvlModify" onclick="setPromptLvl('modify',this)">✏️ 修改老師</button>
+        <button class="lvl-btn" id="lvlOriginal" onclick="setPromptLvl('original',this)">🌟 完全自創</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示詞分解教學 -->
+  <div class="section-label" style="margin-top:1.8rem"><span class="n-badge">2</span> 🎓 提示詞設計分解教學 ── 反詐騙故事模組</div>
+  <div class="tip-box">💡 以下是兩個可以直接用的提示詞範例！你可以照抄（60分），也可以換掉 ○○○ 的部分（80分），或完全自己設計（100分）。</div>
+
+  <!-- 範例 1 -->
+  <div class="example-block">
+    <div class="ex-head">
+      <span class="ex-num">範例 1</span>
+      <span class="ex-title">🎭 角色扮演法 ── 讓 AI 扮演繪本作家</span>
+    </div>
+    <div class="ex-prompt">
+      <div class="ex-prompt-text" id="exPrompt1">請你扮演一位兒童繪本作家。我有一個故事點子：主角是<mark>○○○（填入你的主角）</mark>，故事重點劇情如下：<mark>○○○（填入你設計的詐騙情境與查證過程）</mark>。請幫我把這些元素擴寫成一個適合 5 歲以上小孩閱讀、大約 300–500 字的溫馨短篇故事，並包含具體的對話。</div>
+      <button class="ex-copy-btn" onclick="copyExample('exPrompt1')">📋 複製</button>
+    </div>
+    <!-- 分解說明 -->
+    <div class="ex-breakdown">
+      <div class="ex-bd-title">🔍 提示詞結構分解</div>
+      <div class="ex-bd-grid">
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag role">角色設定</div>
+          <div class="ex-bd-desc">「請你扮演一位兒童繪本作家」<br>→ 讓 AI 進入特定角色，產出更符合目標的內容</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag task">任務說明</div>
+          <div class="ex-bd-desc">「我有一個故事點子：主角是○○○」<br>→ 給 AI 你的創作素材，讓它幫你發展</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag format">格式要求</div>
+          <div class="ex-bd-desc">「適合 5 歲以上、300–500 字、包含對話」<br>→ 指定輸出的長度、風格與結構</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag tip">自創加分點</div>
+          <div class="ex-bd-desc">加入具體詐騙類型、查證步驟、角色個性<br>→ 細節越具體，故事越有深度，分數越高！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 範例 2 -->
+  <div class="example-block" style="margin-top:1rem">
+    <div class="ex-head">
+      <span class="ex-num">範例 2</span>
+      <span class="ex-title">🌍 補充法 ── 加入更多角色與場景</span>
+    </div>
+    <div class="ex-prompt">
+      <div class="ex-prompt-text" id="exPrompt2">請幫我補充這個反詐騙故事中的其他關鍵角色與場景，說明如下：<mark>○○○（填入你想補充的角色，例如：熱心的警察叔叔、擔心的媽媽、同學等）</mark>，以及場景設定：<mark>○○○（例如：學校電腦教室、家裡客廳、便利商店等）</mark>。請確保新加入的角色與場景能強化「遇到可疑訊息要查證」的核心訊息，並維持兒童繪本的輕鬆活潑語氣。</div>
+      <button class="ex-copy-btn" onclick="copyExample('exPrompt2')">📋 複製</button>
+    </div>
+    <div class="ex-breakdown">
+      <div class="ex-bd-title">🔍 提示詞結構分解</div>
+      <div class="ex-bd-grid">
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag role">補充指令</div>
+          <div class="ex-bd-desc">「請幫我補充…關鍵角色與場景」<br>→ 告訴 AI 這是接續前一個提示詞的補充任務</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag task">角色清單</div>
+          <div class="ex-bd-desc">填入配角設定（警察、家長、同學）<br>→ 豐富故事世界觀，增加防詐騙守護者</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag format">核心訊息鎖定</div>
+          <div class="ex-bd-desc">「強化『遇到可疑訊息要查證』的核心訊息」<br>→ 讓 AI 不忘故事主題，避免跑題</div>
+        </div>
+        <div class="ex-bd-item">
+          <div class="ex-bd-tag tip">語氣限定</div>
+          <div class="ex-bd-desc">「維持兒童繪本的輕鬆活潑語氣」<br>→ 控制輸出風格，符合目標讀者</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <hr>
-  <div class="section-label"><span class="n-badge">2</span> 故事角色設定</div>
+  <div class="section-label"><span class="n-badge">3</span> 故事角色設定</div>
   <div class="form-row">
     <div class="form-group">
       <label class="form-label">主角設定 <span class="req">*</span></label>
@@ -372,7 +522,7 @@ hr{border:none;border-top:2px dashed var(--g3);margin:1.5rem 0;opacity:.6}
     </div>
   </div>
 
-  <div class="section-label"><span class="n-badge">3</span> 故事情節設計</div>
+  <div class="section-label"><span class="n-badge">4</span> 故事情節設計</div>
   <div class="form-group">
     <label class="form-label">🔥 衝突設計——詐騙情境如何發生？ <span class="req">*</span></label>
     <textarea id="s2_conflict" placeholder="描述主角遇到詐騙的關鍵情境與衝突點..."></textarea>
@@ -386,18 +536,29 @@ hr{border:none;border-top:2px dashed var(--g3);margin:1.5rem 0;opacity:.6}
     <textarea id="s2_ending" placeholder="描述故事結局，以及給讀者的防詐提醒..."></textarea>
   </div>
 
+  <div class="section-label"><span class="n-badge">5</span> 貼上你實際使用的 AI 提示詞</div>
+  <div class="info-box">📝 請將你實際輸入給 AI（ChatGPT / Gemini 等）的完整提示詞貼在下方。老師會根據提示詞的創意程度評分。你可以參考上方範例，也可以自己設計！</div>
   <div class="form-group">
-    <label class="form-label">你使用 AI 生成故事的完整提示詞（請貼上）</label>
-    <textarea id="s2_prompt_used" placeholder="把你輸入給 AI 的提示詞貼在這裡..." style="min-height:80px"></textarea>
+    <label class="form-label">你使用 AI 生成故事的完整提示詞（請貼上）<span class="req">*</span></label>
+    <textarea id="s2_prompt_used" placeholder="把你輸入給 AI 的提示詞貼在這裡...&#10;&#10;例如：&#10;請你扮演一位兒童繪本作家。我有一個故事點子：主角是○○○...&#10;&#10;或者你自己設計的提示詞也可以！" style="min-height:140px"></textarea>
   </div>
 
   <div class="nav-btns">
     <button class="btn btn-prev" onclick="goStep(1)">← 上一步</button>
-    <button class="btn btn-next" onclick="goStep(3)">下一步 →</button>
+    <button class="btn btn-next" onclick="finishPhase1()">完成第一階段 🎉</button>
   </div>
 </section>
 
-<!-- ====== STEP 3 : 分鏡角色 ====== -->
+<!-- ── PHASE 2 BANNER ── -->
+<div style="max-width:860px;margin:0 auto;padding:0 1rem">
+  <div style="background:linear-gradient(135deg,#FFF7ED,#FFFBEB);border:2.5px dashed var(--orange);border-radius:20px;padding:1.3rem 1.8rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;display:none" id="phase2Banner">
+    <div style="font-size:2rem">🎬</div>
+    <div>
+      <div style="font-weight:900;font-size:1rem;color:var(--orange)">第二階段：AI 生成製作</div>
+      <div style="font-size:.85rem;color:var(--g5);margin-top:2px">先把故事腳本交給 AI 生成後，再繼續填寫分鏡角色、音樂與倫理查證</div>
+    </div>
+  </div>
+</div>
 <section class="step-card" data-step="3">
   <div class="step-head">
     <div class="s-icon yellow">🎬</div>
@@ -787,7 +948,7 @@ function validateStep(step) {
   const requiredMap = {
     0: [['s0_class','班級'],['s0_group','組別'],['s0_seat','座號'],['s0_name','姓名']],
     1: [['s1_core_concept','核心防詐觀念'],['s1_action_tips','行動建議']],
-    2: [['s2_hero','主角設定'],['s2_villain','反派設定'],['s2_conflict','衝突設計'],['s2_verify','查證過程'],['s2_ending','結局']],
+    2: [['s2_hero','主角設定'],['s2_villain','反派設定'],['s2_conflict','衝突設計'],['s2_verify','查證過程'],['s2_ending','結局'],['s2_prompt_used','AI 提示詞']],
     3: [['s3_hero_desc','主角固定描述'],['s3_villain_desc','反派固定描述']],
     4: [['s4_music_style','音樂風格'],['s4_music_mood','主要情緒']],
     5: [['s5_source1','查證來源1'],['s5_source2','查證來源2'],['s5_verify_steps','查證步驟']],
@@ -803,9 +964,6 @@ function validateStep(step) {
   }
   if (step === 1 && fraudSelected.length === 0) {
     showToast('請選擇至少一種詐騙類型！', 'error'); return false;
-  }
-  if (step === 2 && !promptLvl) {
-    showToast('請選擇 AI 提示詞使用方式！', 'error'); return false;
   }
   if (step === 3 && !imgLvl) {
     showToast('請選擇圖像提示詞等級！', 'error'); return false;
@@ -823,6 +981,45 @@ document.querySelectorAll('#fraudTypes .c-card').forEach(card => {
     fraudSelected = [...document.querySelectorAll('#fraudTypes .c-card.selected')].map(c => c.dataset.val);
   });
 });
+
+// ── PHASE 1 COMPLETE ─────────────────────────────────────
+function finishPhase1() {
+  if (!validateStep(2)) return;
+  document.getElementById('phaseModal').classList.add('show');
+}
+function closePhaseModal() {
+  document.getElementById('phaseModal').classList.remove('show');
+  const banner = document.getElementById('phase2Banner');
+  if (banner) banner.style.display = 'flex';
+  _applyStep(3);
+}
+
+// ── PROMPT LEVEL BUTTONS ─────────────────────────────────
+function setPromptLvl(val, el) {
+  promptLvl = val;
+  document.querySelectorAll('.lvl-btn').forEach(b => b.className = 'lvl-btn');
+  el.classList.add('active-' + val);
+}
+
+// ── COPY EXAMPLE PROMPT ──────────────────────────────────
+function copyExample(id) {
+  const el = document.getElementById(id);
+  // Strip HTML tags for plain text copy
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.parentElement.querySelector('.ex-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✅ 已複製！';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('✅ 範例提示詞已複製！', 'success');
+  });
+}
 
 // ── RADIO SELECTIONS ──────────────────────────────────────
 function selectPromptLevel(el, val) {
