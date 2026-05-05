@@ -201,7 +201,7 @@
 
       // --- 表單狀態 ---
       const [info, setInfo] = useState({ class: '801', group: '', seat: '', name: '', members: '' });
-      const [step1, setStep1] = useState({ type: '', coreIdea: '', action: '', protagonist: '', villain: '', conflict: '', verify: '', ending: '', promptLevel: '', promptContent: '' });
+      const [step1, setStep1] = useState({ type: '', otherType: '', coreIdea: '', action: '', protagonist: '', villain: '', conflict: '', verify: '', ending: '', promptLevel: '', promptContent: '' });
       const [step2, setStep2] = useState({ proDesc: '', vilDesc: '', promptLevel: '', promptContent: '', consistencyChecks: [] });
       const [step3, setStep3] = useState({ style: '', emotion: '', promptLevel: '', promptContent: '', musicFileName: '', musicUrl: '' });
       const [step4, setStep4] = useState({ source1: '', source2: '', verifySteps: '', tools: '', ethicsChecks: [] });
@@ -216,11 +216,11 @@
       ];
 
       // --- 摘要產生器 ---
-      const summary1 = `【AI反詐騙繪本：故事生成設定】\n詐騙類型：${step1.type}\n核心觀念：${step1.coreIdea}\n防詐行動：${step1.action}\n主角設定：${step1.protagonist}\n反派設定：${step1.villain}\n衝突事件：${step1.conflict}\n查證過程：${step1.verify}\n故事結局：${step1.ending}\n\n👉 請根據以上設定，幫我寫一個字數適合繪本、分頁敘述的反詐騙故事。`;
+      const summary1 = `【AI反詐騙繪本：故事生成設定】\n詐騙類型：${step1.type === '其他類型' ? step1.otherType : step1.type}\n核心觀念：${step1.coreIdea}\n防詐行動：${step1.action}\n主角設定：${step1.protagonist}\n反派設定：${step1.villain}\n衝突事件：${step1.conflict}\n查證過程：${step1.verify}\n故事結局：${step1.ending}\n\n👉 請根據以上設定，幫我寫一個字數適合繪本、分頁敘述的反詐騙故事。`;
       
       const summary2 = `【AI反詐騙繪本：角色一致性設定】\n主角外觀提示詞：${step2.proDesc}\n反派外觀提示詞：${step2.vilDesc}\n\n👉 請幫我產生繪本分鏡圖。請確保每張圖片中的角色都符合上述外觀特徵。`;
 
-      const summary3 = `【AI反詐騙繪本：配樂生成設定】\n故事大綱與情境：本故事是關於「${step1.type}」，主角遭遇「${step1.conflict}」，最後「${step1.ending}」。\n\n期望的音樂風格：${step3.style}\n期望的音樂情緒：${step3.emotion}\n\n👉 請幫我以此情境生成適合的背景音樂提示詞 (Prompt)。`;
+      const summary3 = `【AI反詐騙繪本：配樂生成設定】\n故事大綱與情境：本故事是關於「${step1.type === '其他類型' ? step1.otherType : step1.type}」，主角遭遇「${step1.conflict}」，最後「${step1.ending}」。\n\n期望的音樂風格：${step3.style}\n期望的音樂情緒：${step3.emotion}\n\n👉 請幫我以此情境生成適合的背景音樂提示詞 (Prompt)。`;
 
       const summary4 = `【AI反詐騙繪本：查證與工具歷程】\n我使用了以下資料來源進行查證：\n1. ${step4.source1}\n2. ${step4.source2}\n\n查證步驟：\n${step4.verifySteps}\n\n使用的 AI 工具：\n${step4.tools}\n\n👉 以上為本作品的查證與倫理自律紀錄。`;
 
@@ -263,7 +263,7 @@
         const payload = {
           時間戳記: new Date().toLocaleString('zh-TW'),
           班級: info.class, 組別: info.group, 座號: info.seat, 姓名: info.name, 其他組員: info.members,
-          詐騙類型: step1.type, 核心防詐觀念: step1.coreIdea, 行動建議: step1.action,
+          詐騙類型: step1.type === '其他類型' ? step1.otherType : step1.type, 核心防詐觀念: step1.coreIdea, 行動建議: step1.action,
           主角設定: step1.protagonist, 反派設定: step1.villain, 衝突設計: step1.conflict, 查證過程: step1.verify, 故事結局: step1.ending, 
           腳本提示詞等級: step1.promptLevel, 腳本提示詞內容: step1.promptContent,
           主角固定描述: step2.proDesc, 反派固定描述: step2.vilDesc, 
@@ -330,12 +330,31 @@
                 <Card>
                   <h2 className="text-2xl font-black text-blue-800 mb-6 flex items-center gap-3">🎯 1-B. 議題選擇與防詐觀念</h2>
                   <Label>你要破解的詐騙類型？</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    {['網路購物詐騙', '假投資群組', 'AI深偽詐騙', '假冒客服'].map(type => (
-                      <RadioButton key={type} name="fraudType" label={type} value={type} checked={step1.type === type} onChange={e => setStep1({...step1, type: e.target.value})} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {[
+                      { id: '網路購物詐騙', label: '網路購物詐騙', icon: '🛒' },
+                      { id: '假投資群組詐騙', label: '假投資群組詐騙', icon: '💹' },
+                      { id: 'AI深偽詐騙', label: 'AI 深偽詐騙', icon: '🤖' },
+                      { id: '假冒客服詐騙', label: '假冒客服詐騙', icon: '📞' },
+                      { id: '釣魚簡訊詐騙', label: '釣魚簡訊詐騙', icon: '🎣' },
+                      { id: '假交友詐騙', label: '假交友詐騙', icon: '💔' },
+                      { id: '一頁式廣告詐騙', label: '一頁式廣告詐騙', icon: '📱' },
+                      { id: '其他類型', label: '其他類型', icon: '❓' }
+                    ].map(ft => (
+                      <RadioButton 
+                        key={ft.id} name="fraudType" label={ft.label} value={ft.id} icon={ft.icon} 
+                        checked={step1.type === ft.id} onChange={e => setStep1({...step1, type: e.target.value})} 
+                      />
                     ))}
-                    <div className="col-span-1 md:col-span-2"><Input placeholder="其他類型（自行輸入）" value={!['網路購物詐騙', '假投資群組', 'AI深偽詐騙', '假冒客服', ''].includes(step1.type) ? step1.type : ''} onChange={e => setStep1({...step1, type: e.target.value})} /></div>
                   </div>
+                  
+                  {step1.type === '其他類型' && (
+                    <div className="mb-6 fade-in p-5 bg-slate-50 border-2 border-slate-200 rounded-xl">
+                      <Label>若選「其他」，請說明詐騙類型</Label>
+                      <Input placeholder="請自行輸入詐騙類型..." value={step1.otherType} onChange={e => setStep1({...step1, otherType: e.target.value})} />
+                    </div>
+                  )}
+
                   <div className="mb-6"><Label>核心宣導觀念</Label><TextArea placeholder="例：太便宜一定有詐..." value={step1.coreIdea} onChange={e => setStep1({...step1, coreIdea: e.target.value})} /></div>
                   <div><Label>防詐行動建議</Label><TextArea placeholder="例：立刻打 165..." value={step1.action} onChange={e => setStep1({...step1, action: e.target.value})} /></div>
                 </Card>
@@ -456,7 +475,7 @@
                 {/* 顯示第一階段的故事，唯讀 */}
                 <div className="mb-8 p-6 bg-slate-100 rounded-2xl border-2 border-slate-200 text-slate-600">
                   <h4 className="font-bold text-slate-800 mb-2">回顧你的故事設定：</h4>
-                  <p className="text-sm">詐騙類型：{step1.type || '(尚未填寫)'}</p>
+                  <p className="text-sm">詐騙類型：{(step1.type === '其他類型' ? step1.otherType : step1.type) || '(尚未填寫)'}</p>
                   <p className="text-sm">衝突：{step1.conflict || '(尚未填寫)'}</p>
                   <p className="text-sm">結局：{step1.ending || '(尚未填寫)'}</p>
                 </div>
